@@ -14,6 +14,12 @@ storeX/
 │   │   │   └── index.ts       # Server entry point
 │   │   ├── package.json
 │   │   └── tsconfig.json
+│   ├── mobile/                # Mobile React Native + Expo + NativeWind + TypeScript
+│   │   ├── App.tsx            # Root component với NativeWind styling
+│   │   ├── global.css         # Tailwind & NativeWind CSS
+│   │   ├── metro.config.js    # Metro bundler config với NativeWind & Monorepo
+│   │   ├── package.json
+│   │   └── tsconfig.json
 │   └── web/                   # Frontend React + Next.js (App Router) + TypeScript
 │       ├── src/app/           # Next.js App Router (layout, page, css)
 │       ├── public/
@@ -44,7 +50,8 @@ storeX/
 
 - **Monorepo Manager**: [Turborepo](https://turbo.build/repo) (v2)
 - **Package Manager**: [Bun](https://bun.com)
-- **Frontend**: [Next.js](https://nextjs.org) 15 (App Router) + [React](https://react.dev) 19 + TypeScript
+- **Frontend Web**: [Next.js](https://nextjs.org) 15 (App Router) + [React](https://react.dev) 19 + TypeScript
+- **Frontend Mobile**: [Expo](https://expo.dev) (SDK 57) + [React Native](https://reactnative.dev) + [NativeWind](https://nativewind.dev) (v5 / Tailwind CSS v4) + TypeScript
 - **Backend**: [Node.js](https://nodejs.org) + [Fastify](https://fastify.dev) + TypeScript (dev với `tsx`, build với `tsup`)
 - **Linter & Formatter**: [Biome](https://biomejs.dev)
 - **Git Hooks**: [Husky](https://typicode.github.io/husky)
@@ -78,6 +85,12 @@ bun run --filter api dev
 
 # Chỉ chạy Web Frontend
 bun run --filter web dev
+
+# Chạy Mobile App (Expo)
+bun run --filter mobile dev
+# Hoặc chạy trực tiếp trên simulator / device
+bun run --filter mobile android
+bun run --filter mobile ios
 ```
 
 ### 3. Build dự án
