@@ -61,6 +61,8 @@ bun run dev                         # Run all workspaces in dev mode
 bun run --filter web dev             # Run only Web (port 3000)
 bun run --filter api dev             # Run only API (port 4000)
 bun run --filter mobile dev         # Run only Mobile (Expo dev server)
+bun run db:generate                 # Generate Drizzle SQL migrations
+bun run db:migrate                  # Run Drizzle SQL migrations
 bun run build                        # Build all workspaces with Turborepo
 bun run check-types                  # Type-check all packages
 bun run check                        # Run Biome lint & format checks
