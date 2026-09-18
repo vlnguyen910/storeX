@@ -1,0 +1,7 @@
+{
+  "extends": "@storex/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"]
+}
