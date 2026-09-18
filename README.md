@@ -27,6 +27,15 @@ storeX/
 │       ├── package.json
 │       └── tsconfig.json
 ├── packages/
+│   ├── database/              # PostgreSQL + Drizzle ORM (schema, client, migrations)
+│   │   ├── src/
+│   │   │   ├── schema/        # Table schemas (users, bookings, ...)
+│   │   │   ├── client.ts      # Drizzle client kết nối qua postgres.js
+│   │   │   └── index.ts       # Export db, client, schemas, operators
+│   │   ├── drizzle/           # Thư mục chứa file SQL migration sinh bởi drizzle-kit
+│   │   ├── drizzle.config.ts  # Cấu hình drizzle-kit
+│   │   ├── package.json
+│   │   └── tsconfig.json
 │   ├── shared/                # Package chia sẻ dùng chung giữa FE và BE
 │   │   ├── src/index.ts       # Shared types, models, constants, utilities
 │   │   ├── package.json
@@ -53,6 +62,7 @@ storeX/
 - **Frontend Web**: [Next.js](https://nextjs.org) 15 (App Router) + [React](https://react.dev) 19 + TypeScript
 - **Frontend Mobile**: [Expo](https://expo.dev) (SDK 57) + [React Native](https://reactnative.dev) + [NativeWind](https://nativewind.dev) (v5 / Tailwind CSS v4) + TypeScript
 - **Backend**: [Node.js](https://nodejs.org) + [Fastify](https://fastify.dev) + TypeScript (dev với `tsx`, build với `tsup`)
+- **Database & ORM**: [PostgreSQL](https://www.postgresql.org) + [Drizzle ORM](https://orm.drizzle.team) + [drizzle-kit](https://orm.drizzle.team/kit-docs/overview)
 - **Linter & Formatter**: [Biome](https://biomejs.dev)
 - **Git Hooks**: [Husky](https://typicode.github.io/husky)
 
@@ -113,6 +123,22 @@ bun run check:fix
 
 # Format code với Biome
 bun run format
+```
+
+### 5. Quản lý Database (Drizzle ORM & PostgreSQL)
+
+```bash
+# Tạo migration SQL mới từ schema TypeScript
+bun run db:generate
+
+# Đẩy trực tiếp schema lên database (dùng khi prototype / development)
+bun run db:push
+
+# Chạy migration lên database PostgreSQL
+bun run db:migrate
+
+# Mở Drizzle Studio UI trực quan quản lý dữ liệu trên trình duyệt
+bun run db:studio
 ```
 
 ---

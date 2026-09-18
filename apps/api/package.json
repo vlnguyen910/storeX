@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
+    "@storex/database": "workspace:*",
     "@storex/shared": "workspace:*",
     "fastify": "^5.2.1"
   },

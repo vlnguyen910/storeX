@@ -87,24 +87,76 @@ module.exports = withNativewind(config);
 
 ---
 
-## 5. Tổ chức thư mục khuyến nghị trong `apps/mobile/src/`
+## 5. Ví dụ Cấu trúc Thư mục theo Domain / Feature trong Mobile
 
 ```text
-apps/mobile/
-├── src/
-│   ├── components/            # UI components tái sử dụng (Button, Input, Card, Modal)
-│   ├── features/              # Vertical slices theo nghiệp vụ
-│   │   ├── auth/
-│   │   │   ├── components/
-│   │   │   ├── hooks/
-│   │   │   └── types.ts
-│   │   └── booking/
-│   ├── hooks/                 # Custom hooks dùng chung toàn app
-│   ├── navigation/            # Expo Router hoặc React Navigation stacks/tabs
-│   ├── screens/               # Màn hình điều hướng
-│   └── global.css             # Entry point cho NativeWind & Tailwind CSS
-├── App.tsx                    # Root component
-├── metro.config.js            # Metro configuration
-├── postcss.config.js          # PostCSS cho Tailwind v4
-└── babel.config.js            # Babel config
+apps/mobile/src/
+├── screens/                               # Màn hình điều hướng (Layout, Navigation, Safe Area)
+│   ├── booking/
+│   │   ├── booking-list-screen.tsx        # Screen danh sách, kết nối useBookings()
+│   │   └── booking-detail-screen.tsx      # Screen chi tiết, lấy route.params.id
+│   ├── payment/
+│   │   └── checkout-screen.tsx            # Screen checkout, hiển thị cổng thanh toán
+│   └── auth/
+│       └── login-screen.tsx
+│
+├── features/                              # Vertical Feature Slices (Domain)
+│   ├── booking/                           # Domain Booking
+│   │   ├── components/                    # Mobile UI components với NativeWind
+│   │   │   ├── booking-card.tsx           # Thẻ hiển thị với className="bg-slate-800 rounded-xl..."
+│   │   │   ├── booking-status-chip.tsx    # Chip status với màu tương ứng
+│   │   │   ├── booking-bottom-sheet.tsx   # Action sheet xác nhận thao tác đặt chỗ
+│   │   │   └── booking-filter-bar.tsx
+│   │   ├── hooks/                         # Feature logic & state
+│   │   │   ├── use-booking-detail.ts      # TanStack Query hook lấy chi tiết theo id
+│   │   │   ├── use-booking-actions.ts     # Action mutations: Confirm, Cancel
+│   │   │   └── use-booking-filter.ts      # Quản lý filter & pagination
+│   │   └── types.ts                       # Mobile-specific UI types
+│   │
+│   ├── payment/                           # Domain Payment
+│   │   ├── components/
+│   │   │   ├── payment-card-selector.tsx
+│   │   │   └── payment-qr-modal.tsx       # Modal QR cho Momo / VNPay
+│   │   └── hooks/
+│   │       └── use-mobile-payment.ts      # Deeplink mở ứng dụng Momo / ngân hàng
+│   │
+│   └── auth/                              # Domain Auth
+│       ├── hooks/
+│       │   └── use-auth.ts
+│       └── store/
+│           └── auth-storage.ts            # Zustand + Expo SecureStore lưu session
+│
+├── components/ui/                         # Reusable Mobile UI (NativeWind)
+│   ├── app-button.tsx                     # Nút bấm chuẩn thiết kế
+│   ├── app-input.tsx                      # Input text với label, helper text
+│   ├── card.tsx                           # Container card chuẩn styling
+│   └── skeleton.tsx                       # Shimmer loading skeleton
+│
+├── navigation/                            # Navigation Stacks / Tabs
+│   ├── root-navigator.tsx
+│   ├── tab-navigator.tsx
+│   └── types.ts                           # React Navigation ParamList typings
+│
+├── hooks/                                 # Global utility hooks (useSafeArea, useNetworkStatus)
+├── global.css                             # NativeWind & Tailwind CSS imports
+├── App.tsx                                # Root component
+├── metro.config.js                        # Metro configuration
+├── postcss.config.js                      # PostCSS cho Tailwind v4
+└── babel.config.js                        # Babel config
+```
+
+### Minh họa luồng thực thi trong Mobile (Ví dụ: Chi tiết Booking)
+
+```text
+[User mở BookingDetailScreen]
+       │
+       ▼
+booking-detail-screen.tsx      ──> Lấy bookingId từ route.params
+       │
+       ▼
+use-booking-detail.ts          ──> TanStack Query: gọi centralized api-client
+       │
+       ▼
+booking-card.tsx               ──> Render giao diện với NativeWind (className="...")
+booking-action-sheet.tsx       ──> Khi người dùng bấm Confirm: gọi useBookingActions().confirm()
 ```
