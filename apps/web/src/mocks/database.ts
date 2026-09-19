@@ -1,0 +1,50 @@
+import type { Facility } from "@storex/contracts";
+import { StorageUnitStatus } from "@storex/contracts";
+import { createSeedDatabase } from "./seeds";
+import type { MockDatabase } from "./types";
+
+const DATABASE_KEY = "storex.mock-db.v1";
+
+export function getMockDatabase(): MockDatabase {
+  if (typeof window === "undefined") {
+    return createSeedDatabase();
+  }
+
+  const persisted = window.localStorage.getItem(DATABASE_KEY);
+  if (!persisted) {
+    const database = createSeedDatabase();
+    saveMockDatabase(database);
+    return database;
+  }
+
+  try {
+    const parsed = JSON.parse(persisted) as MockDatabase;
+    return parsed.version === 1 ? parsed : createSeedDatabase();
+  } catch {
+    return createSeedDatabase();
+  }
+}
+
+export function saveMockDatabase(database: MockDatabase): void {
+  window.localStorage.setItem(DATABASE_KEY, JSON.stringify(database));
+}
+
+export function resetMockDatabase(): void {
+  window.localStorage.setItem(DATABASE_KEY, JSON.stringify(createSeedDatabase()));
+}
+
+export function hydrateFacility(database: MockDatabase, facility: Facility): Facility {
+  const facilityUnits = database.units.filter((unit) => unit.facilityId === facility.id);
+  const availableUnits = facilityUnits.filter(
+    (unit) => unit.status === StorageUnitStatus.AVAILABLE,
+  );
+  return {
+    ...facility,
+    totalUnits: facilityUnits.length,
+    availableUnits: availableUnits.length,
+    startingMonthlyPrice:
+      availableUnits.length > 0
+        ? Math.min(...availableUnits.map((unit) => unit.monthlyPrice))
+        : facility.startingMonthlyPrice,
+  };
+}

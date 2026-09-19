@@ -1,0 +1,38 @@
+"use client";
+
+import type { UserRole } from "@storex/contracts";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useEffect } from "react";
+import { LoadingState } from "@/components/ui/states";
+import { routes } from "@/config/routes";
+import { useAuthStore } from "@/features/auth/auth-store";
+import { AppShell } from "./app-shell";
+
+export function ProtectedArea({
+  allowedRole,
+  children,
+}: {
+  allowedRole: UserRole;
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  const session = useAuthStore((state) => state.session);
+  const hydrated = useAuthStore((state) => state.hydrated);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!session)
+      router.replace(`${routes.login}?returnTo=${encodeURIComponent(location.pathname)}`);
+    else if (session.user.role !== allowedRole) router.replace(routes.forbidden);
+  }, [allowedRole, hydrated, router, session]);
+
+  if (!hydrated || !session || session.user.role !== allowedRole) {
+    return (
+      <main className="centered-page">
+        <LoadingState label="Đang xác thực quyền truy cập…" />
+      </main>
+    );
+  }
+
+  return <AppShell>{children}</AppShell>;
+}
