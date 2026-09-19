@@ -26,3 +26,31 @@ Phải phân định rạch ròi giữa 3 loại state:
 ### 4. Logic Placement
 - Nghiêm cấm đặt business logic hoặc direct API fetch trong UI components.
 - Tách logic thành custom hooks theo từng feature (`useBooking`, `useRentalFlow`, ...).
+
+### 5. Actor Modules & Import Boundaries
+
+Web sử dụng mô hình hybrid để nhiều thành viên phát triển song song:
+
+- `app/`: chỉ chứa Next.js route/layout adapter; page của actor phải import trực tiếp một screen
+  từ `modules/` và không chứa business logic.
+- `modules/<actor>/`: screen và orchestration riêng của Customer, Facility Staff, Facility
+  Manager, Business Operations hoặc System Administrator.
+- `features/<domain>/`: nghiệp vụ tái sử dụng giữa các actor như auth, facilities,
+  reservations và dashboard primitives.
+- `components/`: UI/layout thuần hiển thị, không phụ thuộc actor hoặc business flow.
+
+Chiều dependency bắt buộc:
+
+```text
+app → modules → features → api-client/contracts
+              ↘ components/config/lib
+```
+
+`features` không được import từ `modules`. Không tạo barrel `modules/<actor>/index.ts` cho
+route imports vì dễ tạo conflict và kéo các screen không dùng vào cùng client bundle.
+
+Navigation, route constants, permission mapping, mock handlers và mock seeds phải tách file
+theo actor/domain; file registry trung tâm chỉ làm nhiệm vụ ghép các cấu hình đã tách.
+
+Style mới của actor module dùng CSS Module colocated. `app/globals.css` chỉ dành cho reset,
+legacy MVP styles và utilities thật sự toàn cục.

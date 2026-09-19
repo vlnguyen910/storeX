@@ -7,19 +7,38 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "biome check src",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@storex/api-client": "workspace:*",
+    "@storex/contracts": "workspace:*",
     "@storex/shared": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
+    "axios": "^1.12.2",
+    "axios-mock-adapter": "^2.1.0",
+    "lucide-react": "^0.544.0",
     "next": "^15.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.63.0",
+    "zod": "^3.25.76",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "@storex/typescript-config": "workspace:*",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "typescript": "^5.7.3"
+    "jsdom": "^27.0.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
   }
 }
