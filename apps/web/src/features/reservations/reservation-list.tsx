@@ -2,6 +2,7 @@
 
 import { CalendarDays, MapPin, Plus } from "lucide-react";
 import Link from "next/link";
+import { buttonClassName } from "@/components/ui/button";
 import { Currency, PageHeader, StatusBadge } from "@/components/ui/display";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
 import { routes } from "@/config/routes";
@@ -22,7 +23,10 @@ export function ReservationList() {
         title="Reservation"
         description="Theo dõi các lượt đặt kho và trạng thái tiền cọc."
         action={
-          <Link className="button button-primary" href={routes.customer.newReservation}>
+          <Link
+            className={buttonClassName("primary", "max-[560px]:w-full")}
+            href={routes.customer.newReservation}
+          >
             <Plus size={18} />
             Đặt kho mới
           </Link>
@@ -34,20 +38,20 @@ export function ReservationList() {
           description="Tìm một cơ sở và hoàn tất đặt chỗ đầu tiên."
         />
       ) : (
-        <div className="reservation-list">
+        <div className="grid gap-3">
           {query.data?.map((reservation) => (
             <Link
               href={routes.customer.reservation(reservation.id)}
-              className="reservation-row card"
+              className="grid grid-cols-[1.2fr_2fr_1fr_1fr] items-center gap-5 rounded-card border border-line bg-white p-6 shadow-soft transition hover:-translate-y-px hover:border-[#a9c8bf] max-[800px]:grid-cols-2 max-[560px]:grid-cols-1"
               key={reservation.id}
             >
-              <div className="reservation-code">
-                <small>Mã reservation</small>
+              <div className="grid gap-1.5">
+                <small className="text-muted">Mã reservation</small>
                 <strong>{reservation.code}</strong>
                 <StatusBadge value={reservation.status} />
               </div>
-              <div>
-                <span>
+              <div className="grid gap-1.5">
+                <span className="flex items-center gap-1 text-xs text-muted">
                   <MapPin />
                   {reservation.facility.name}
                 </span>
@@ -55,15 +59,15 @@ export function ReservationList() {
                   {reservation.unitType} · {reservation.sizeLabel}
                 </strong>
               </div>
-              <div>
-                <span>
+              <div className="grid gap-1.5">
+                <span className="flex items-center gap-1 text-xs text-muted">
                   <CalendarDays />
                   Bắt đầu
                 </span>
                 <strong>{formatDate(reservation.startDate)}</strong>
               </div>
-              <div>
-                <span>Tiền cọc</span>
+              <div className="grid gap-1.5">
+                <span className="text-xs text-muted">Tiền cọc</span>
                 <strong>
                   <Currency value={reservation.depositAmount} />
                 </strong>

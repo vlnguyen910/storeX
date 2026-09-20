@@ -52,8 +52,9 @@ route imports vì dễ tạo conflict và kéo các screen không dùng vào cù
 Navigation, route constants, permission mapping, mock handlers và mock seeds phải tách file
 theo actor/domain; file registry trung tâm chỉ làm nhiệm vụ ghép các cấu hình đã tách.
 
-Style mới của actor module dùng CSS Module colocated. `app/globals.css` chỉ dành cho reset,
-legacy MVP styles và utilities thật sự toàn cục.
+Web sử dụng Tailwind CSS v4. Actor module và feature dùng utility classes trực tiếp trong JSX.
+`app/globals.css` chỉ chứa Tailwind import, theme tokens, base reset và accessibility defaults;
+không thêm component selector hoặc business-specific selector vào global CSS.
 
 ---
 

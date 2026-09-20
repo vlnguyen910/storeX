@@ -6,12 +6,16 @@ export const metadata: Metadata = { title: "Tìm cơ sở" };
 export default function FacilitiesPage() {
   return (
     <PublicLayout>
-      <main className="public-page">
-        <div className="container">
-          <div className="public-page-heading">
-            <span className="eyebrow">Mạng lưới storeX</span>
-            <h1>Tìm kho gần bạn</h1>
-            <p>So sánh vị trí, kích thước, giá và số lượng còn trống tại từng cơ sở.</p>
+      <main className="min-h-[70vh] py-16 pb-[90px]">
+        <div className="mx-auto w-[min(1180px,calc(100%_-_40px))] max-[800px]:w-[min(100%_-_28px,680px)]">
+          <div className="mb-8 max-w-[680px]">
+            <span className="mb-2.5 inline-block text-xs font-extrabold tracking-[0.13em] text-primary uppercase">
+              Mạng lưới storeX
+            </span>
+            <h1 className="mb-3 text-5xl font-bold max-[560px]:text-4xl">Tìm kho gần bạn</h1>
+            <p className="text-muted">
+              So sánh vị trí, kích thước, giá và số lượng còn trống tại từng cơ sở.
+            </p>
           </div>
           <FacilityList />
         </div>

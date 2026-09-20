@@ -56,54 +56,59 @@ export function LoginForm() {
   }
 
   return (
-    <div className="auth-card">
-      <div className="auth-heading">
-        <span className="auth-icon">
+    <div className="w-full max-w-[620px] justify-self-end rounded-[22px] bg-white p-9 shadow-card max-[800px]:justify-self-center max-[560px]:p-[24px_18px]">
+      <div className="flex items-center gap-4">
+        <span className="grid size-[50px] place-items-center rounded-[14px] bg-primary text-white">
           <LockKeyhole />
         </span>
         <div>
-          <span className="eyebrow">Khu vực thành viên</span>
-          <h1>Đăng nhập storeX</h1>
+          <span className="mb-2.5 inline-block text-xs font-extrabold tracking-[0.13em] text-primary uppercase">
+            Khu vực thành viên
+          </span>
+          <h1 className="m-0 text-3xl font-bold">Đăng nhập storeX</h1>
         </div>
       </div>
-      <p className="auth-copy">
+      <p className="mb-6 text-muted">
         Truy cập reservation, kho đang thuê và công việc vận hành của bạn.
       </p>
-      <form onSubmit={handleSubmit(onSubmit)} className="form-stack">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
         <FieldShell label="Email" error={errors.email?.message}>
           <Input type="email" autoComplete="email" {...register("email")} />
         </FieldShell>
         <FieldShell label="Mật khẩu" error={errors.password?.message}>
           <Input type="password" autoComplete="current-password" {...register("password")} />
         </FieldShell>
-        <div className="form-row-between">
-          <label className="checkbox">
+        <div className="flex items-center justify-between text-sm max-[560px]:items-start max-[560px]:gap-2.5">
+          <label className="flex items-center gap-2 text-muted">
             <input type="checkbox" /> Ghi nhớ email
           </label>
-          <Link href={routes.forgotPassword}>Quên mật khẩu?</Link>
+          <Link className="font-bold text-primary" href={routes.forgotPassword}>
+            Quên mật khẩu?
+          </Link>
         </div>
         <Button type="submit" loading={isSubmitting} icon={<ArrowRight size={18} />}>
           Đăng nhập
         </Button>
       </form>
-      <div className="demo-panel">
-        <div className="demo-panel-title">
+      <div className="mt-5 rounded-[14px] bg-[#f5f8f7] p-4">
+        <div className="mb-3 flex items-center gap-2">
           <ShieldCheck size={18} />
           <strong>Tài khoản demo</strong>
-          <span>Mật khẩu: Demo@123</span>
+          <span className="ml-auto text-xs text-muted">Mật khẩu: Demo@123</span>
         </div>
-        <div className="demo-account-grid">
+        <div className="grid grid-cols-2 gap-2 max-[560px]:grid-cols-1">
           {demoAccounts.map((account) => (
             <button
               key={account.email}
               type="button"
+              className="cursor-pointer rounded-[9px] border border-[#dce4e1] bg-white p-2.5 text-left hover:border-primary"
               onClick={() => {
                 setValue("email", account.email, { shouldValidate: true });
                 setValue("password", "Demo@123", { shouldValidate: true });
               }}
             >
-              <strong>{account.label}</strong>
-              <small>{account.email}</small>
+              <strong className="block text-xs">{account.label}</strong>
+              <small className="mt-1 block text-[0.68rem] text-muted">{account.email}</small>
             </button>
           ))}
         </div>
