@@ -37,6 +37,7 @@ Project architecture: **Monorepo (Turborepo + Bun) + Modular Monolith**. Scope c
 
 > [!IMPORTANT]
 > To preserve context, AI agents should **ONLY** read the following documents when the task specifically requires detailed context on that domain:
+>
 > - [`docs/backend-patterns.md`](file:///home/owen/Projects/storeX/docs/backend-patterns.md): Route → Service → Repository, State Machines, Strategy/Adapter patterns, Transactions & Idempotency.
 > - [`docs/web-patterns.md`](file:///home/owen/Projects/storeX/docs/web-patterns.md): Next.js App Router, Feature-based structure, Server/Client/Form state separation, TanStack Query, Zustand.
 > - [`docs/mobile-patterns.md`](file:///home/owen/Projects/storeX/docs/mobile-patterns.md): React Native + Expo structure, Screen → Hook → API Client flow.
