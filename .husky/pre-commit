@@ -1,1 +1,6 @@
-bunx @biomejs/biome check --staged --files-ignore-unknown=true --no-errors-on-unmatched
+export PATH="$HOME/.bun/bin:$PATH"
+if command -v bunx >/dev/null 2>&1; then
+  bunx @biomejs/biome check --staged --files-ignore-unknown=true --no-errors-on-unmatched
+elif command -v npx >/dev/null 2>&1; then
+  npx @biomejs/biome check --staged --files-ignore-unknown=true --no-errors-on-unmatched
+fi

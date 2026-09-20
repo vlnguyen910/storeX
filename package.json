@@ -16,7 +16,12 @@
     "format": "biome format --write .",
     "test": "turbo test",
     "test:e2e": "bun run --filter web test:e2e",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:generate": "bun --filter @storex/database db:generate",
+    "db:push": "bun --filter @storex/database db:push",
+    "db:migrate": "bun --filter @storex/database db:migrate",
+    "db:seed": "bun --filter @storex/database db:seed",
+    "db:studio": "bun --filter @storex/database db:studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
