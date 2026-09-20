@@ -1,6 +1,6 @@
 # storeX Monorepo
 
-Dự án Monorepo hiện đại được quản lý bởi **Turborepo** và **Bun**, sử dụng **TypeScript** toàn diện từ frontend tới backend.
+Dự án monorepo được quản lý bởi **Turborepo** và **Bun**, sử dụng **TypeScript** từ frontend tới backend.
 
 ## 🏗️ Cấu trúc dự án
 
@@ -9,8 +9,9 @@ storeX/
 ├── apps/
 │   ├── api/                   # Backend Node.js + Fastify + TypeScript
 │   │   ├── src/
-│   │   │   ├── routes/        # API Routes (ví dụ: health)
-│   │   │   ├── app.ts         # Fastify App factory & plugins
+│   │   │   ├── common/        # Database, lỗi, logger, plugins dùng chung
+│   │   │   ├── modules/       # Các feature module (users, ...)
+│   │   │   ├── app.ts         # Fastify app factory & plugins
 │   │   │   └── index.ts       # Server entry point
 │   │   ├── package.json
 │   │   └── tsconfig.json
@@ -45,6 +46,8 @@ storeX/
 │       ├── nextjs.json        # Next.js specific TypeScript config
 │       ├── node.json          # Node.js specific TypeScript config
 │       └── package.json
+├── docker/
+│   └── docker-compose.yml      # PostgreSQL cho local development
 ├── .husky/
 │   └── pre-commit             # Git hook chạy Biome check trước khi commit
 ├── biome.json                 # Cấu hình linter & formatter (Biome)
@@ -76,7 +79,59 @@ storeX/
 bun install
 ```
 
-### 2. Chạy môi trường phát triển (Dev)
+### 2. Khởi động PostgreSQL bằng Docker Compose
+
+Docker Compose cung cấp PostgreSQL local với các thông tin kết nối mặc định:
+
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `storex`
+- **User**: `postgres`
+- **Password**: `postgres`
+
+Khởi động database:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+Kiểm tra trạng thái:
+
+```bash
+docker compose -f docker/docker-compose.yml ps
+```
+
+Dừng database nhưng giữ lại dữ liệu:
+
+```bash
+docker compose -f docker/docker-compose.yml down
+```
+
+Muốn xóa cả volume dữ liệu local:
+
+```bash
+docker compose -f docker/docker-compose.yml down -v
+```
+
+> Lệnh `down -v` sẽ xóa toàn bộ dữ liệu PostgreSQL local. Dùng lệnh này nếu volume đã được tạo từ cấu hình database cũ và cần khởi tạo lại.
+
+### 3. Cấu hình biến môi trường
+
+API tự động đọc file `apps/api/.env`. Tạo file từ mẫu nếu chưa có:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+```
+
+Để chạy với PostgreSQL trong Docker Compose, giữ `DATABASE_URL` như sau:
+
+```env
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/storex
+```
+
+API mặc định chạy tại port `4000`. Có thể thay đổi port trong `apps/api/.env`.
+
+### 4. Chạy môi trường phát triển (Dev)
 
 Chạy đồng thời cả Frontend và Backend:
 
@@ -85,7 +140,9 @@ bun run dev
 ```
 
 - **Web (Next.js)**: [http://localhost:3000](http://localhost:3000)
-- **API (Fastify)**: [http://localhost:4000](http://localhost:4000) (Health check: `http://localhost:4000/api/health`)
+- **API (Fastify)**: [http://localhost:4000](http://localhost:4000)
+- **API health check**: [http://localhost:4000/api/health](http://localhost:4000/api/health)
+- **API users**: `/api/users`
 
 Chạy riêng lẻ từng app:
 
@@ -103,13 +160,13 @@ bun run --filter mobile android
 bun run --filter mobile ios
 ```
 
-### 3. Build dự án
+### 5. Build dự án
 
 ```bash
 bun run build
 ```
 
-### 4. Kiểm tra Type & Linter
+### 6. Kiểm tra Type & Linter
 
 ```bash
 # Kiểm tra TypeScript type checking toàn bộ repo
@@ -125,7 +182,7 @@ bun run check:fix
 bun run format
 ```
 
-### 5. Quản lý Database (Drizzle ORM & PostgreSQL)
+### 7. Quản lý Database (Drizzle ORM & PostgreSQL)
 
 ```bash
 # Tạo migration SQL mới từ schema TypeScript

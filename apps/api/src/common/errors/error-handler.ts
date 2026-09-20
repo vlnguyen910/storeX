@@ -1,0 +1,73 @@
+import type { FastifyError, FastifyInstance } from "fastify";
+import { ZodError } from "zod";
+import { errorResponse } from "../response/api-response";
+import { AppError } from "./app-error";
+
+export function setupErrorHandler(fastify: FastifyInstance): void {
+  fastify.setErrorHandler((error: FastifyError | Error, request, reply) => {
+    // 1. Handle Zod validation errors
+    if (error instanceof ZodError) {
+      const details = error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+
+      request.log.warn({ err: error, path: request.url, details }, "Schema validation error");
+
+      return reply.status(400).send(
+        errorResponse({
+          code: "VALIDATION_ERROR",
+          message: "Request validation failed",
+          details,
+        }),
+      );
+    }
+
+    // 2. Handle Fastify built-in schema validation errors
+    if ("validation" in error && Array.isArray(error.validation)) {
+      const details = error.validation.map((v) => ({
+        field: v.instancePath?.replace(/^\//, "") || v.keyword,
+        message: v.message || "Invalid value",
+      }));
+
+      request.log.warn({ err: error, path: request.url, details }, "Fastify validation error");
+
+      return reply.status(400).send(
+        errorResponse({
+          code: "VALIDATION_ERROR",
+          message: error.message || "Validation failed",
+          details,
+        }),
+      );
+    }
+
+    // 3. Handle Domain AppError instances
+    if (error instanceof AppError) {
+      if (error.statusCode >= 500) {
+        request.log.error({ err: error, path: request.url }, error.message);
+      } else {
+        request.log.warn({ err: error, path: request.url }, error.message);
+      }
+
+      return reply.status(error.statusCode).send(
+        errorResponse({
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        }),
+      );
+    }
+
+    // 4. Handle unexpected runtime errors (500)
+    request.log.error({ err: error, path: request.url }, "Unhandled server error");
+
+    const isDev = process.env.NODE_ENV !== "production";
+
+    return reply.status(500).send(
+      errorResponse({
+        code: "INTERNAL_SERVER_ERROR",
+        message: isDev ? error.message : "An unexpected internal server error occurred",
+      }),
+    );
+  });
+}

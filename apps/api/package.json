@@ -14,7 +14,11 @@
     "@fastify/cors": "^10.0.2",
     "@storex/database": "workspace:*",
     "@storex/shared": "workspace:*",
-    "fastify": "^5.2.1"
+    "dotenv": "^18.0.0",
+    "fastify": "^5.2.1",
+    "fastify-plugin": "^6.0.0",
+    "fastify-type-provider-zod": "^7.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@storex/typescript-config": "workspace:*",
