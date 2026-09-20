@@ -28,7 +28,7 @@ export function ProtectedArea({
 
   if (!hydrated || !session || session.user.role !== allowedRole) {
     return (
-      <main className="centered-page">
+      <main className="grid min-h-screen place-items-center p-8">
         <LoadingState label="Đang xác thực quyền truy cập…" />
       </main>
     );

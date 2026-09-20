@@ -12,8 +12,8 @@ module mà không phải sửa module của nhóm khác.
 - `features` không được import ngược từ `modules`.
 - Nghiệp vụ dùng bởi từ hai actor trở lên phải đặt trong `features`, không copy giữa modules.
 - Component thuần hiển thị dùng chung đặt trong `components/ui` hoặc `components/layout`.
-- Style mới của module phải dùng file `*.module.css` colocated; không thêm selector module mới
-  vào `app/globals.css`.
+- Style của module phải dùng Tailwind utility classes trực tiếp trong JSX. Chỉ thêm token hoặc
+  base reset thật sự toàn cục vào `app/globals.css`.
 
 ## Ownership mặc định
 

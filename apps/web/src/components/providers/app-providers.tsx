@@ -28,7 +28,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        {ready ? children : <div className="app-boot">Đang khởi tạo storeX…</div>}
+        {ready ? (
+          children
+        ) : (
+          <div className="grid min-h-screen place-items-center p-8">Đang khởi tạo storeX…</div>
+        )}
       </ToastProvider>
     </QueryClientProvider>
   );

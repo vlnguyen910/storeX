@@ -17,10 +17,11 @@ export function FacilityList({ protectedMode = false }: { protectedMode?: boolea
 
   return (
     <>
-      <div className="filter-bar">
-        <div className="search-control">
-          <Search size={19} />
+      <div className="mb-7 grid grid-cols-[1.6fr_1fr_1fr] gap-3 rounded-card border border-line bg-white p-3.5 shadow-soft max-[800px]:grid-cols-1">
+        <div className="relative flex items-center">
+          <Search className="absolute left-3.5 text-muted" size={19} />
           <Input
+            className="pl-10"
             aria-label="Tìm cơ sở"
             placeholder="Tên cơ sở hoặc thành phố"
             value={search}
@@ -67,14 +68,14 @@ export function FacilityList({ protectedMode = false }: { protectedMode?: boolea
         />
       ) : null}
       {query.data?.items.length ? (
-        <div className="facility-grid">
+        <div className="grid grid-cols-3 gap-5 max-[1024px]:grid-cols-2 max-[560px]:grid-cols-1">
           {query.data.items.map((facility) => (
             <FacilityCard key={facility.id} facility={facility} protectedMode={protectedMode} />
           ))}
         </div>
       ) : null}
       {query.data && query.data.totalPages > 1 ? (
-        <div className="pagination">
+        <div className="mt-7 flex items-center justify-center gap-4">
           <Button
             variant="outline"
             disabled={page === 1}
