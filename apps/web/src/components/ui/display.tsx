@@ -1,8 +1,18 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`card ${className}`}>{children}</section>;
+  return (
+    <section
+      className={cn(
+        "rounded-card border border-line bg-surface p-6 text-ink shadow-soft",
+        className,
+      )}
+    >
+      {children}
+    </section>
+  );
 }
 
 export function Currency({ value }: { value: number }) {
@@ -19,7 +29,19 @@ export function StatusBadge({ value }: { value: string }) {
     OCCUPIED: "Đang thuê",
     MAINTENANCE: "Bảo trì",
   };
-  return <span className={`status status-${value.toLowerCase()}`}>{labels[value] ?? value}</span>;
+  const positive = ["ACTIVE", "AVAILABLE", "CONFIRMED", "SUCCEEDED"].includes(value);
+  const maintenance = value === "MAINTENANCE";
+  return (
+    <span
+      className={cn(
+        "inline-flex min-h-[26px] w-fit items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-600",
+        positive && "bg-accent-soft text-accent",
+        maintenance && "bg-amber-50 text-amber-700",
+      )}
+    >
+      {labels[value] ?? value}
+    </span>
+  );
 }
 
 export function PageHeader({
@@ -34,11 +56,15 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="page-header">
+    <div className="mb-[30px] flex items-end justify-between gap-6 max-[800px]:flex-col max-[800px]:items-start">
       <div>
-        {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
-        <h1>{title}</h1>
-        {description ? <p>{description}</p> : null}
+        {eyebrow ? (
+          <span className="mb-2.5 inline-block text-xs font-extrabold tracking-[0.13em] text-primary uppercase">
+            {eyebrow}
+          </span>
+        ) : null}
+        <h1 className="mb-2 text-4xl font-bold max-[560px]:text-3xl">{title}</h1>
+        {description ? <p className="m-0 text-muted">{description}</p> : null}
       </div>
       {action}
     </div>
