@@ -8,6 +8,27 @@
       "when": 1789735414519,
       "tag": "0000_past_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789921449305,
+      "tag": "0001_absurd_tag",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790006780545,
+      "tag": "0002_tired_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790006851421,
+      "tag": "0003_complex_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

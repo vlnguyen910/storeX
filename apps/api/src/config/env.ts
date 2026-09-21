@@ -1,11 +1,23 @@
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
 import { z } from "zod";
 
-// Load .env if present
-dotenv.config();
+// Load .env if present (resolve relative to current directory or apps/api)
+const envCandidates = [
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "apps/api/.env"),
+  path.resolve(import.meta.dirname, "../../.env"),
+];
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z.enum(["development", "develop", "test", "production"]).default("development"),
   PORT: z.coerce.number().default(4000),
   HOST: z.string().default("0.0.0.0"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
@@ -16,6 +28,15 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 function parseEnv(): Env {
+  const rawNodeEnv = (process.env.NODE_ENV || "development").trim().toLowerCase();
+  const isDevelop = rawNodeEnv === "develop" || rawNodeEnv === "development";
+
+  if (isDevelop) {
+    // If NODE_ENV=develop / development: prioritize Docker Compose URL
+    process.env.DATABASE_URL =
+      process.env.DOCKER_DATABASE_URL || "postgres://postgres:postgres@localhost:5432/storex";
+  }
+
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {

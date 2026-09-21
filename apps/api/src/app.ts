@@ -28,13 +28,5 @@ export function buildApp(): FastifyInstance {
   app.register(healthPlugin, { prefix: "/api" });
   app.register(usersRoutes, { prefix: "/api/users" });
 
-  app.get("/", async () => {
-    return {
-      name: "storeX API",
-      status: "running",
-      version: "0.0.1",
-    };
-  });
-
   return app;
 }
