@@ -1,9 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { getDatabaseUrl } from "./env";
 import * as schema from "./schema";
 
-const connectionString =
-  process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/storex";
+const connectionString = getDatabaseUrl();
 
 // For queries and transactions with connection pooling
 export const queryClient = postgres(connectionString, {
@@ -12,6 +12,6 @@ export const queryClient = postgres(connectionString, {
   connect_timeout: 10,
 });
 
-export const db = drizzle(queryClient, { schema });
+export const db = drizzle(queryClient, { schema, casing: "snake_case" });
 
 export type Database = typeof db;
