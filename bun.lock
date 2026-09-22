@@ -20,6 +20,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@fastify/cors": "^10.0.2",
+        "@storex/contracts": "workspace:*",
         "@storex/database": "workspace:*",
         "@storex/shared": "workspace:*",
         "argon2": "^0.45.1",
