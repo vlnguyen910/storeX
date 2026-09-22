@@ -5,6 +5,8 @@ import { setupErrorHandler } from "./common/errors/error-handler";
 import { loggerConfig } from "./common/logger/logger";
 import { corsPlugin } from "./common/plugins/cors";
 import { healthPlugin } from "./common/plugins/health";
+import { authPlugin } from "./modules/auth/auth.guard";
+import { authRoutes } from "./modules/auth/auth.routes";
 import { usersRoutes } from "./modules/users/users.routes";
 
 export function buildApp(): FastifyInstance {
@@ -23,10 +25,11 @@ export function buildApp(): FastifyInstance {
   // Core Plugins
   app.register(corsPlugin);
   app.register(databasePlugin);
+  app.register(authPlugin);
 
   // System & Feature Routes
   app.register(healthPlugin, { prefix: "/api" });
   app.register(usersRoutes, { prefix: "/api/users" });
-
+  app.register(authRoutes, { prefix: "/api/auth" });
   return app;
 }
