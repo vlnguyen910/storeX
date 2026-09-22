@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { successResponse } from "../../common/response/api-response";
-import { requireAuth } from "../auth/auth.guard";
+import { requireAuth, requireRole } from "../auth/auth.guard";
 import { UsersRepository } from "./users.repository";
-import { createUserSchema, userIdParamsSchema, userQuerySchema } from "./users.schema";
+import { userIdParamsSchema, userQuerySchema } from "./users.schema";
 import { UsersService } from "./users.service";
 
 export const usersRoutes: FastifyPluginAsync = async (fastify) => {
@@ -19,6 +19,7 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
       schema: {
         querystring: userQuerySchema,
       },
+      preHandler: [requireRole("SYSTEM_ADMIN")],
     },
     async (request, reply) => {
       const { limit, offset } = request.query;
@@ -34,6 +35,7 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
       schema: {
         params: userIdParamsSchema,
       },
+      preHandler: [requireRole("SYSTEM_ADMIN")],
     },
     async (request, reply) => {
       const { id } = request.params;
@@ -42,21 +44,7 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  // POST /api/users
-  typedApp.post(
-    "/",
-    {
-      schema: {
-        body: createUserSchema,
-      },
-    },
-    async (request, reply) => {
-      const user = await service.createUser(request.body);
-      return reply.status(201).send(successResponse(user, "User created successfully"));
-    },
-  );
-
-  // POST /api/me
+  // GET /api/users/me
   typedApp.get(
     "/me",
     {

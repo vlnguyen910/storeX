@@ -1,29 +1,20 @@
-import type { User } from "@storex/database";
-import { ConflictError, NotFoundError } from "../../common/errors/app-error";
+import type { ApiUser } from "@storex/contracts";
+import { NotFoundError } from "../../common/errors/app-error";
+import { toApiUser } from "./users.mapper";
 import type { UsersRepository } from "./users.repository";
-import type { CreateUserInput } from "./users.schema";
 
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getUserById(id: string): Promise<User> {
+  async getUserById(id: string): Promise<ApiUser> {
     const user = await this.usersRepository.findById(id);
     if (!user) {
       throw new NotFoundError(`User with id "${id}" not found`);
     }
-    return user;
+    return toApiUser(user);
   }
 
-  async createUser(input: CreateUserInput): Promise<User> {
-    const existing = await this.usersRepository.findByEmail(input.email);
-    if (existing) {
-      throw new ConflictError(`User with email "${input.email}" already exists`);
-    }
-
-    return this.usersRepository.create(input);
-  }
-
-  async listUsers(limit: number, offset: number): Promise<User[]> {
-    return this.usersRepository.list(limit, offset);
+  async listUsers(limit: number, offset: number): Promise<ApiUser[]> {
+    return (await this.usersRepository.list(limit, offset)).map(toApiUser);
   }
 }
