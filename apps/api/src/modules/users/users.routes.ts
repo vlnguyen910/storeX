@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { successResponse } from "../../common/response/api-response";
+import { requireAuth } from "../auth/auth.guard";
 import { UsersRepository } from "./users.repository";
 import { createUserSchema, userIdParamsSchema, userQuerySchema } from "./users.schema";
 import { UsersService } from "./users.service";
@@ -52,6 +53,21 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const user = await service.createUser(request.body);
       return reply.status(201).send(successResponse(user, "User created successfully"));
+    },
+  );
+
+  // POST /api/me
+  typedApp.get(
+    "/me",
+    {
+      preHandler: [requireAuth],
+    },
+    async (request, reply) => {
+      // biome-ignore lint/style/noNonNullAssertion: <it will never null if have session!>
+      const currentUser = request.user!;
+      const userProfile = await service.getUserById(currentUser.id);
+
+      return reply.status(200).send(successResponse(userProfile));
     },
   );
 };

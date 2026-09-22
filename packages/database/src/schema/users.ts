@@ -1,14 +1,19 @@
 import { boolean, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
-export const roleEnum = pgEnum("role", [
-  "CUSTOMERl",
+export const ROLES = [
+  "CUSTOMER",
   "FACILITY_STAFF",
   "FACILITY_MANAGER",
   "BUSINEES_OPERATION_MANAGER",
   "SYSTEM_ADMIN",
-]);
+] as const;
 
-export const statusEnum = pgEnum("status", ["ACTIVE", "INACTIVE"]);
+export type Role = (typeof ROLES)[number];
+export const roleEnum = pgEnum("role", ROLES);
+
+export const USER_STATUS = ["ACTIVE", "INACTIVE"] as const;
+export type UserStatus = (typeof USER_STATUS)[number];
+export const statusEnum = pgEnum("status", USER_STATUS);
 
 export const users = pgTable("users", {
   id: uuid().defaultRandom().primaryKey(),
