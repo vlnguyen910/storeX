@@ -19,6 +19,12 @@ describe("shared contracts", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("uses the same role values as the database authorization model", () => {
+    expect(UserRole.STORAGE_CUSTOMER).toBe("CUSTOMER");
+    expect(UserRole.BUSINESS_OPERATIONS_MANAGER).toBe("BUSINESS_OPERATION_MANAGER");
+    expect(UserRole.SYSTEM_ADMINISTRATOR).toBe("SYSTEM_ADMIN");
+  });
+
   it("rejects quote durations outside the MVP policy", () => {
     const parsed = ReservationQuoteSchema.safeParse({
       id: "quote-1",

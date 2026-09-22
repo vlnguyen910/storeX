@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export enum UserRole {
-  STORAGE_CUSTOMER = "STORAGE_CUSTOMER",
+  STORAGE_CUSTOMER = "CUSTOMER",
   FACILITY_STAFF = "FACILITY_STAFF",
   FACILITY_MANAGER = "FACILITY_MANAGER",
-  BUSINESS_OPERATIONS_MANAGER = "BUSINESS_OPERATIONS_MANAGER",
-  SYSTEM_ADMINISTRATOR = "SYSTEM_ADMINISTRATOR",
+  BUSINESS_OPERATIONS_MANAGER = "BUSINESS_OPERATION_MANAGER",
+  SYSTEM_ADMINISTRATOR = "SYSTEM_ADMIN",
 }
 
 export enum Permission {
@@ -77,6 +77,18 @@ export const UserSchema = z.object({
   assignedFacilityIds: z.array(z.string()),
 });
 export type User = z.infer<typeof UserSchema>;
+
+export const ApiUserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  phone: z.string().nullable(),
+  role: UserRoleSchema,
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export type ApiUser = z.infer<typeof ApiUserSchema>;
 
 export const SessionSchema = z.object({
   user: UserSchema,
