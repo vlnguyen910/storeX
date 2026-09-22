@@ -22,7 +22,16 @@ const envSchema = z.object({
   HOST: z.string().default("0.0.0.0"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   DATABASE_URL: z.string().default("postgres://postgres:postgres@localhost:5432/storex"),
-  CORS_ORIGIN: z.string().default("*"),
+  CORS_ORIGIN: z
+    .string()
+    .min(1)
+    .refine(
+      (origins) => origins.split(",").every((origin) => origin.trim() !== "*"),
+      "CORS_ORIGIN must list explicit origins when credentials are enabled",
+    ),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.url(),
+  AUTH_TRUSTED_ORIGINS: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

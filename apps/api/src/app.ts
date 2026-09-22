@@ -12,7 +12,6 @@ import { usersRoutes } from "./modules/users/users.routes";
 export function buildApp(): FastifyInstance {
   const app = Fastify({
     logger: loggerConfig,
-    disableRequestLogging: false,
   });
 
   // Zod Type Provider compilers
