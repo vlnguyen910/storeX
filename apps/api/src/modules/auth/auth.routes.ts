@@ -1,5 +1,6 @@
 import { fromNodeHeaders } from "better-auth/node";
 import type { FastifyPluginAsync } from "fastify";
+import { env } from "../../config/env";
 import { auth } from "./auth";
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
@@ -8,7 +9,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     url: "/*",
     async handler(request, reply) {
       // Construct request URL
-      const url = new URL(request.url, `http://${request.headers.host}`);
+      const url = new URL(request.url, env.BETTER_AUTH_URL);
 
       // Convert Fastify headers to standard Headers object
       const headers = fromNodeHeaders(request.headers);
