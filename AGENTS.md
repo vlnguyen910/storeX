@@ -49,8 +49,10 @@ Project architecture: **Monorepo (Turborepo + Bun) + Modular Monolith**. Scope c
 2. **Feature-based Slices**: Organize code by feature/domain. Never put business logic in routes, screens, or UI components.
 3. **Strict State Separation**: Server state (TanStack Query), Client state (Zustand when necessary), Form state (React Hook Form + Zod).
 4. **Data Integrity**: Database is the source of truth. Use database transactions and row-level locks for concurrent/consistent flows. Never expose DB models directly to frontend.
-5. **Mark Unknowns as `TBD`**: Never speculate on unconfirmed business requirements.
-6. **No Overengineering**: Shared abstractions only when reused in ≥2 places. Keep code readable and easily handoff-ready.
+5. **Schema-First Migrations (No Direct Edits)**: Never edit Drizzle migration files directly (`packages/database/drizzle/*`). Always update the schema in `packages/database` and generate migrations via `bun run db:generate`.
+6. **Business Clarity & Confidence Threshold (< 95%)**: Always verify domain requirements with the user before implementing features. If confidence in implementing according to exact business rules is below 95%, proactively ask clarifying questions instead of making assumptions. Never speculate; mark unknowns as `TBD`.
+7. **Propose Further Decisions Before Implementation**: Always provide design choices, trade-offs, alternatives, and further decisions for the user to review and align on before beginning implementation.
+8. **No Overengineering**: Shared abstractions only when reused in ≥2 places. Keep code readable and easily handoff-ready.
 
 ## 4. Build, Lint, and Development Commands
 

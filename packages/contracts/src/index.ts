@@ -124,6 +124,36 @@ export const FacilitySchema = z.object({
 export type Facility = z.infer<typeof FacilitySchema>;
 export type FacilitySummary = Facility;
 
+export const FacilityAssignmentRoleSchema = z.enum(["FACILITY_STAFF", "FACILITY_MANAGER"]);
+export type FacilityAssignmentRole = z.infer<typeof FacilityAssignmentRoleSchema>;
+
+export const ApiFacilitySchema = z.object({
+  id: z.string().uuid(),
+  code: z.string(),
+  name: z.string(),
+  address: z.string(),
+  description: z.string().nullable(),
+  isActive: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export type ApiFacility = z.infer<typeof ApiFacilitySchema>;
+
+export const ApiFacilityAssignmentSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  facilityId: z.string().uuid(),
+  assignedAt: z.string().datetime(),
+  endedAt: z.string().datetime().nullable(),
+  isActive: z.boolean(),
+  role: FacilityAssignmentRoleSchema,
+  userName: z.string().optional(),
+  userEmail: z.string().optional(),
+  facilityName: z.string().optional(),
+  facilityCode: z.string().optional(),
+});
+export type ApiFacilityAssignment = z.infer<typeof ApiFacilityAssignmentSchema>;
+
 export const UnitAvailabilityOptionSchema = z.object({
   facilityId: z.string(),
   unitType: z.string(),
