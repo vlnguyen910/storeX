@@ -52,7 +52,8 @@ Project architecture: **Monorepo (Turborepo + Bun) + Modular Monolith**. Scope c
 5. **Schema-First Migrations (No Direct Edits)**: Never edit Drizzle migration files directly (`packages/database/drizzle/*`). Always update the schema in `packages/database` and generate migrations via `bun run db:generate`.
 6. **Business Clarity & Confidence Threshold (< 95%)**: Always verify domain requirements with the user before implementing features. If confidence in implementing according to exact business rules is below 95%, proactively ask clarifying questions instead of making assumptions. Never speculate; mark unknowns as `TBD`.
 7. **Propose Further Decisions Before Implementation**: Always provide design choices, trade-offs, alternatives, and further decisions for the user to review and align on before beginning implementation.
-8. **No Overengineering**: Shared abstractions only when reused in ≥2 places. Keep code readable and easily handoff-ready.
+8. **TDD & Business-Driven Testing (No Fabricated Tests)**: Follow Test-Driven Development (TDD). Before creating tests, thoroughly question and clarify all business requirements with the user. Only proceed to write tests when confidence in understanding the business domain reaches at least 95%. Never invent, speculate, or fabricate test cases based on assumptions. Always present the planned test cases and explain what each test is for to the user before implementation.
+9. **No Overengineering**: Shared abstractions only when reused in ≥2 places. Keep code readable and easily handoff-ready.
 
 ## 4. Build, Lint, and Development Commands
 
@@ -66,6 +67,7 @@ bun run --filter api dev             # Run only API (port 4000)
 bun run --filter mobile dev         # Run only Mobile (Expo dev server)
 bun run db:generate                 # Generate Drizzle SQL migrations
 bun run db:migrate                  # Run Drizzle SQL migrations
+bun run test                        # Run unit and integration tests across workspaces
 bun run build                        # Build all workspaces with Turborepo
 bun run check-types                  # Type-check all packages
 bun run check                        # Run Biome lint & format checks
