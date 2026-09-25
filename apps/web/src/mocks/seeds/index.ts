@@ -7,7 +7,7 @@ export { demoAccounts } from "./users.seed";
 
 export function createSeedDatabase(): MockDatabase {
   return {
-    version: 1,
+    version: 2,
     users: structuredClone(userSeeds),
     facilities: structuredClone(facilitySeeds),
     units: structuredClone(storageUnitSeeds),

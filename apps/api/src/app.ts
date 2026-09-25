@@ -7,6 +7,7 @@ import { corsPlugin } from "./common/plugins/cors";
 import { healthPlugin } from "./common/plugins/health";
 import { authPlugin } from "./modules/auth/auth.guard";
 import { authRoutes } from "./modules/auth/auth.routes";
+import { catalogRoutes } from "./modules/catalog/catalog.routes";
 import { facilityContextPlugin } from "./modules/facilities/facilities.guard";
 import { facilitiesRoutes } from "./modules/facilities/facilities.routes";
 import { usersRoutes } from "./modules/users/users.routes";
@@ -34,5 +35,6 @@ export function buildApp(): FastifyInstance {
   app.register(usersRoutes, { prefix: "/api/users" });
   app.register(authRoutes, { prefix: "/api/auth" });
   app.register(facilitiesRoutes, { prefix: "/api/facilities" });
+  app.register(catalogRoutes, { prefix: "/api/catalog" });
   return app;
 }
