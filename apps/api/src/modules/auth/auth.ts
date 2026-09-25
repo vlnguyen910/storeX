@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { accounts, db, sessions, users, verifications } from "@storex/database";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -50,7 +51,7 @@ export const auth = betterAuth({
     cookiePrefix: "storex-auth",
     useSecureCookies: env.NODE_ENV === "production",
     database: {
-      generateId: "uuid",
+      generateId: () => randomUUID(),
     },
   },
 });
