@@ -2,13 +2,22 @@ import { createHttpClient, createStorexApiClient } from "@storex/api-client";
 import { authStore } from "@/features/auth/auth-store";
 
 const http = createHttpClient({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api",
   tokenProvider: {
-    getAccessToken: () => authStore.getState().session?.accessToken ?? null,
-    getRefreshToken: () => authStore.getState().session?.refreshToken ?? null,
+    getAccessToken: () => {
+      const session = authStore.getState().session;
+      return session && "accessToken" in session ? session.accessToken : null;
+    },
+    getRefreshToken: () => {
+      const session = authStore.getState().session;
+      return session && "refreshToken" in session ? session.refreshToken : null;
+    },
     updateTokens: (tokens) => authStore.getState().updateTokens(tokens),
     clearSession: () => authStore.getState().clearSession(),
   },
 });
 
-export const api = createStorexApiClient(http);
+export const api = createStorexApiClient(
+  http,
+  process.env.NEXT_PUBLIC_API_MODE === "mock" ? "mock" : "better-auth",
+);

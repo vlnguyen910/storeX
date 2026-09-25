@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { successResponse } from "../../common/response/api-response";
 import { requireAuth, requireRole } from "../auth/auth.guard";
 import { UsersRepository } from "./users.repository";
-import { userIdParamsSchema, userQuerySchema } from "./users.schema";
+import { updateUserRoleBodySchema, userIdParamsSchema, userQuerySchema } from "./users.schema";
 import { UsersService } from "./users.service";
 
 export const usersRoutes: FastifyPluginAsync = async (fastify) => {
@@ -25,6 +25,22 @@ export const usersRoutes: FastifyPluginAsync = async (fastify) => {
       const { limit, offset } = request.query;
       const users = await service.listUsers(limit, offset);
       return reply.status(200).send(successResponse(users));
+    },
+  );
+
+  // PATCH /api/users/:id/role
+  typedApp.patch(
+    "/:id/role",
+    {
+      schema: {
+        params: userIdParamsSchema,
+        body: updateUserRoleBodySchema,
+      },
+      preHandler: [requireRole("SYSTEM_ADMIN")],
+    },
+    async (request, reply) => {
+      const user = await service.updateUserRole(request.params.id, request.body.role);
+      return reply.status(200).send(successResponse(user, "Vai trò đã được cập nhật"));
     },
   );
 
