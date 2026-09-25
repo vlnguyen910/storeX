@@ -3,6 +3,7 @@ import {
   type Database,
   desc,
   eq,
+  exists,
   type Facility,
   type FacilityAssignment,
   facilities,
@@ -12,11 +13,38 @@ import {
   type NewFacility,
   type NewFacilityAssignment,
   or,
+  sql,
   users,
 } from "@storex/database";
+import type { AssignedFacilityScope, FacilityListScope, FacilityScope } from "./facilities.access";
 
 export class FacilitiesRepository {
   constructor(private readonly db: Database) {}
+
+  private activeAssignmentExists(
+    facilityId: string | typeof facilities.id,
+    scope: AssignedFacilityScope,
+  ) {
+    const facilityCondition =
+      typeof facilityId === "string"
+        ? eq(facilityAssignments.facilityId, facilityId)
+        : eq(facilityAssignments.facilityId, facilityId);
+
+    return exists(
+      this.db
+        .select({ one: sql`1` })
+        .from(facilityAssignments)
+        .where(
+          and(
+            facilityCondition,
+            eq(facilityAssignments.userId, scope.userId),
+            eq(facilityAssignments.role, scope.role),
+            eq(facilityAssignments.isActive, true),
+            or(isNull(facilityAssignments.endedAt), gt(facilityAssignments.endedAt, new Date())),
+          ),
+        ),
+    );
+  }
 
   async createFacility(data: NewFacility): Promise<Facility> {
     const [created] = await this.db.insert(facilities).values(data).returning();
@@ -31,24 +59,58 @@ export class FacilitiesRepository {
     return facility;
   }
 
+  async findAccessibleById(id: string, scope: FacilityScope): Promise<Facility | undefined> {
+    const [facility] = await this.db
+      .select()
+      .from(facilities)
+      .where(
+        and(
+          eq(facilities.id, id),
+          scope.kind === "assigned" ? this.activeAssignmentExists(facilities.id, scope) : undefined,
+        ),
+      );
+    return facility;
+  }
+
   async findByCode(code: string): Promise<Facility | undefined> {
     const [facility] = await this.db.select().from(facilities).where(eq(facilities.code, code));
     return facility;
   }
 
-  async list(limit: number, offset: number, isActive?: boolean): Promise<Facility[]> {
-    const query = this.db.select().from(facilities);
-    if (isActive !== undefined) {
-      query.where(eq(facilities.isActive, isActive));
-    }
-    return query.limit(limit).offset(offset).orderBy(desc(facilities.createdAt));
+  async listAccessible(
+    limit: number,
+    offset: number,
+    isActive: boolean | undefined,
+    scope: FacilityListScope,
+  ): Promise<Facility[]> {
+    return this.db
+      .select()
+      .from(facilities)
+      .where(
+        and(
+          isActive === undefined ? undefined : eq(facilities.isActive, isActive),
+          scope.kind === "assigned" ? this.activeAssignmentExists(facilities.id, scope) : undefined,
+        ),
+      )
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(facilities.createdAt));
   }
 
-  async update(id: string, data: Partial<NewFacility>): Promise<Facility | undefined> {
+  async updateAccessible(
+    id: string,
+    data: Partial<NewFacility>,
+    scope: FacilityScope,
+  ): Promise<Facility | undefined> {
     const [updated] = await this.db
       .update(facilities)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(facilities.id, id))
+      .where(
+        and(
+          eq(facilities.id, id),
+          scope.kind === "assigned" ? this.activeAssignmentExists(id, scope) : undefined,
+        ),
+      )
       .returning();
     return updated;
   }
@@ -56,6 +118,7 @@ export class FacilitiesRepository {
   async findActiveAssignment(
     facilityId: string,
     userId: string,
+    role: AssignedFacilityScope["role"],
   ): Promise<FacilityAssignment | undefined> {
     const [assignment] = await this.db
       .select()
@@ -64,6 +127,7 @@ export class FacilitiesRepository {
         and(
           eq(facilityAssignments.facilityId, facilityId),
           eq(facilityAssignments.userId, userId),
+          eq(facilityAssignments.role, role),
           eq(facilityAssignments.isActive, true),
           or(isNull(facilityAssignments.endedAt), gt(facilityAssignments.endedAt, new Date())),
         ),
@@ -125,6 +189,7 @@ export class FacilitiesRepository {
     facilityId: string,
     limit: number,
     offset: number,
+    scope: FacilityScope,
   ): Promise<
     Array<{
       assignment: FacilityAssignment;
@@ -140,7 +205,12 @@ export class FacilitiesRepository {
       })
       .from(facilityAssignments)
       .innerJoin(users, eq(facilityAssignments.userId, users.id))
-      .where(eq(facilityAssignments.facilityId, facilityId))
+      .where(
+        and(
+          eq(facilityAssignments.facilityId, facilityId),
+          scope.kind === "assigned" ? this.activeAssignmentExists(facilityId, scope) : undefined,
+        ),
+      )
       .limit(limit)
       .offset(offset)
       .orderBy(desc(facilityAssignments.assignedAt));
@@ -148,7 +218,10 @@ export class FacilitiesRepository {
     return rows;
   }
 
-  async listUserAssignmentsWithFacilities(userId: string): Promise<
+  async listUserAssignmentsWithFacilities(
+    userId: string,
+    role: AssignedFacilityScope["role"],
+  ): Promise<
     Array<{
       assignment: FacilityAssignment;
       facilityName: string;
@@ -166,6 +239,7 @@ export class FacilitiesRepository {
       .where(
         and(
           eq(facilityAssignments.userId, userId),
+          eq(facilityAssignments.role, role),
           eq(facilityAssignments.isActive, true),
           or(isNull(facilityAssignments.endedAt), gt(facilityAssignments.endedAt, new Date())),
         ),

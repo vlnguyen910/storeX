@@ -42,4 +42,8 @@ The browser's stored user object only supports navigation; it does not grant API
   access. Facility routes also check the user's active facility assignment.
 - Assigning `FACILITY_STAFF` or `FACILITY_MANAGER` sets the global role only. Access to a specific
   facility still requires a separate facility assignment.
+- For facility access, the account role and the active facility assignment role must match. An
+  expired, revoked, or mismatched assignment grants no access. Facility staff and managers see only
+  their assigned facilities in `GET /api/facilities`; customers retain the facility listing, and
+  System Administrators and Business Operation Managers retain global facility access.
 - The mock API remains available for UI demos and is not connected to PostgreSQL.

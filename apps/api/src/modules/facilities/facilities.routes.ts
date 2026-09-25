@@ -3,7 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { successResponse } from "../../common/response/api-response";
 import { requireAuth, requireRole } from "../auth/auth.guard";
 import { UsersRepository } from "../users/users.repository";
-import { requireFacilityAccess } from "./facilities.guard";
+import { getFacilityListScope } from "./facilities.access";
+import { getFacilityContext, requireFacilityAccess } from "./facilities.guard";
 import { FacilitiesRepository } from "./facilities.repository";
 import {
   createAssignmentBodySchema,
@@ -49,7 +50,9 @@ export const facilitiesRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { limit, offset, isActive } = request.query;
-      const facilities = await service.listFacilities(limit, offset, isActive);
+      // biome-ignore lint/style/noNonNullAssertion: guaranteed by requireAuth
+      const scope = getFacilityListScope(request.user!);
+      const facilities = await service.listFacilities(limit, offset, isActive, scope);
       return reply.status(200).send(successResponse(facilities));
     },
   );
@@ -63,7 +66,7 @@ export const facilitiesRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       // biome-ignore lint/style/noNonNullAssertion: guaranteed by requireAuth
       const currentUser = request.user!;
-      const assignments = await service.listUserAssignments(currentUser.id);
+      const assignments = await service.listUserAssignments(currentUser.id, currentUser.role);
       return reply.status(200).send(successResponse(assignments));
     },
   );
@@ -79,7 +82,7 @@ export const facilitiesRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const facility = await service.getFacilityById(id);
+      const facility = await service.getFacilityById(id, getFacilityContext(request).scope);
       return reply.status(200).send(successResponse(facility));
     },
   );
@@ -96,7 +99,11 @@ export const facilitiesRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const updated = await service.updateFacility(id, request.body);
+      const updated = await service.updateFacility(
+        id,
+        request.body,
+        getFacilityContext(request).scope,
+      );
       return reply.status(200).send(successResponse(updated));
     },
   );
@@ -131,7 +138,12 @@ export const facilitiesRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const { facilityId } = request.params;
       const { limit, offset } = request.query;
-      const assignments = await service.listFacilityAssignments(facilityId, limit, offset);
+      const assignments = await service.listFacilityAssignments(
+        facilityId,
+        limit,
+        offset,
+        getFacilityContext(request).scope,
+      );
       return reply.status(200).send(successResponse(assignments));
     },
   );
