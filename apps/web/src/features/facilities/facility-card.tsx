@@ -1,6 +1,6 @@
 "use client";
 
-import type { Facility } from "@storex/contracts";
+import type { CatalogFacility } from "@storex/contracts";
 import { ArrowRight, Clock3, MapPin, ShieldCheck, Warehouse } from "lucide-react";
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
@@ -12,7 +12,7 @@ export function FacilityCard({
   facility,
   protectedMode = false,
 }: {
-  facility: Facility;
+  facility: CatalogFacility;
   protectedMode?: boolean;
 }) {
   const visualTone = facility.code.startsWith("HCM")
@@ -31,7 +31,7 @@ export function FacilityCard({
       >
         <Warehouse size={42} />
         <span className="absolute top-3.5 left-3.5">
-          <StatusBadge value={facility.status} />
+          <StatusBadge value="ACTIVE" />
         </span>
         <span className="absolute right-3.5 bottom-3 font-extrabold text-white">
           {facility.code}
@@ -42,13 +42,13 @@ export function FacilityCard({
           <h3 className="mb-2 text-lg font-bold">{facility.name}</h3>
           <p className="m-0 flex items-center gap-2 text-muted">
             <MapPin size={16} />
-            {facility.address.district}, {facility.address.city}
+            {facility.address}
           </p>
         </div>
         <div className="grid gap-2 text-xs text-muted">
           <span className="flex items-center gap-2">
             <Clock3 size={16} />
-            {facility.openingHours}
+            {facility.totalUnits} unit trong inventory
           </span>
           <span className="flex items-center gap-2">
             <ShieldCheck size={16} />
@@ -66,7 +66,7 @@ export function FacilityCard({
           className={buttonClassName("outline")}
           href={
             protectedMode
-              ? `${routes.customer.newReservation}?facilityId=${facility.id}`
+              ? `${routes.reservationNew}?facilityId=${facility.id}`
               : routes.facility(facility.id)
           }
         >

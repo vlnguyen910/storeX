@@ -6,7 +6,7 @@ import axios from "axios";
 import { ArrowLeft, ArrowRight, Check, CreditCard, MapPin, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button, buttonClassName } from "@/components/ui/button";
@@ -22,8 +22,7 @@ import { useConfirmReservation, useReservationQuote } from "./hooks";
 
 const wizardSchema = z.object({
   facilityId: z.string().min(1, "Chọn một cơ sở"),
-  unitType: z.string().min(1, "Chọn loại kho"),
-  sizeLabel: z.string().min(1, "Chọn kích thước"),
+  unitTypeId: z.string().min(1, "Chọn loại kho"),
   startDate: z
     .string()
     .min(1, "Chọn ngày bắt đầu")
@@ -62,8 +61,7 @@ export function ReservationWizard() {
     resolver: zodResolver(wizardSchema),
     defaultValues: {
       facilityId: searchParams.get("facilityId") ?? "",
-      unitType: "",
-      sizeLabel: "",
+      unitTypeId: "",
       startDate: dateInputMin(),
       durationMonths: 1,
       cardholder: "NGUYEN MINH ANH",
@@ -73,17 +71,10 @@ export function ReservationWizard() {
     },
   });
   const facilityId = form.watch("facilityId");
-  const unitType = form.watch("unitType");
-  const sizeLabel = form.watch("sizeLabel");
+  const unitTypeId = form.watch("unitTypeId");
   const availabilityQuery = useAvailability(facilityId);
   const selectedFacility = facilitiesQuery.data?.items.find((item) => item.id === facilityId);
-  const selectedOption = availabilityQuery.data?.find(
-    (item) => item.unitType === unitType && item.sizeLabel === sizeLabel,
-  );
-  const groupedTypes = useMemo(
-    () => [...new Set(availabilityQuery.data?.map((item) => item.unitType) ?? [])],
-    [availabilityQuery.data],
-  );
+  const selectedOption = availabilityQuery.data?.find((item) => item.unitTypeId === unitTypeId);
 
   useEffect(() => {
     const facilityParam = searchParams.get("facilityId");
@@ -91,20 +82,18 @@ export function ReservationWizard() {
   }, [form, searchParams]);
 
   function chooseOption(option: UnitAvailabilityOption) {
-    form.setValue("unitType", option.unitType, { shouldValidate: true });
-    form.setValue("sizeLabel", option.sizeLabel, { shouldValidate: true });
+    form.setValue("unitTypeId", option.unitTypeId, { shouldValidate: true });
   }
 
   async function next() {
     if (step === 0 && (await form.trigger("facilityId"))) setStep(1);
-    else if (step === 1 && (await form.trigger(["unitType", "sizeLabel"]))) setStep(2);
+    else if (step === 1 && (await form.trigger("unitTypeId"))) setStep(2);
     else if (step === 2 && (await form.trigger(["startDate", "durationMonths"]))) {
       const values = form.getValues();
       try {
         const result = await quoteMutation.mutateAsync({
           facilityId: values.facilityId,
-          unitType: values.unitType,
-          sizeLabel: values.sizeLabel,
+          unitTypeId: values.unitTypeId,
           startDate: values.startDate,
           durationMonths: Number(values.durationMonths),
         });
@@ -232,17 +221,14 @@ export function ReservationWizard() {
                     )}
                     onClick={() => {
                       form.setValue("facilityId", facility.id, { shouldValidate: true });
-                      form.setValue("unitType", "");
-                      form.setValue("sizeLabel", "");
+                      form.setValue("unitTypeId", "");
                     }}
                   >
                     <span className="grid size-[35px] place-items-center rounded-[10px] bg-primary-soft text-primary">
                       <MapPin className="size-[18px]" />
                     </span>
                     <strong>{facility.name}</strong>
-                    <small className="text-muted">
-                      {facility.address.district}, {facility.address.city}
-                    </small>
+                    <small className="text-muted">{facility.address}</small>
                     <span className="mt-auto text-xs font-bold text-accent">
                       {facility.availableUnits} unit còn trống
                     </span>
@@ -267,34 +253,28 @@ export function ReservationWizard() {
                 <LoadingState />
               ) : (
                 <div className="grid grid-cols-3 gap-3 max-[1024px]:grid-cols-2 max-[560px]:grid-cols-1">
-                  {groupedTypes
-                    .flatMap(
-                      (type) =>
-                        availabilityQuery.data?.filter((option) => option.unitType === type) ?? [],
-                    )
-                    .map((option) => (
-                      <button
-                        type="button"
-                        disabled={option.availableCount === 0}
-                        key={`${option.unitType}-${option.sizeLabel}`}
-                        className={cn(
-                          "flex min-h-[150px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left text-ink hover:border-primary hover:ring-3 hover:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50",
-                          unitType === option.unitType &&
-                            sizeLabel === option.sizeLabel &&
-                            "border-primary bg-[#f4faf7] ring-3 ring-primary/10",
-                        )}
-                        onClick={() => chooseOption(option)}
-                      >
-                        <strong>{option.sizeLabel}</strong>
-                        <small className="text-muted">{option.unitType}</small>
-                        <b>
-                          <Currency value={option.monthlyPrice} /> / tháng
-                        </b>
-                        <span className="mt-auto text-xs font-bold text-accent">
-                          {option.availableCount ? `Còn ${option.availableCount} chỗ` : "Tạm hết"}
-                        </span>
-                      </button>
-                    ))}
+                  {availabilityQuery.data?.map((option) => (
+                    <button
+                      type="button"
+                      disabled={option.availableCount === 0}
+                      key={`${option.unitType}-${option.sizeLabel}`}
+                      className={cn(
+                        "flex min-h-[150px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left text-ink hover:border-primary hover:ring-3 hover:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50",
+                        unitTypeId === option.unitTypeId &&
+                          "border-primary bg-[#f4faf7] ring-3 ring-primary/10",
+                      )}
+                      onClick={() => chooseOption(option)}
+                    >
+                      <strong>{option.sizeLabel}</strong>
+                      <small className="text-muted">{option.unitType}</small>
+                      <b>
+                        <Currency value={option.monthlyPrice} /> / tháng
+                      </b>
+                      <span className="mt-auto text-xs font-bold text-accent">
+                        {option.availableCount ? `Còn ${option.availableCount} chỗ` : "Tạm hết"}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -486,7 +466,7 @@ export function ReservationWizard() {
         {selectedFacility ? (
           <p className="m-0 flex items-center gap-1 text-xs text-muted">
             <MapPin size={15} />
-            {selectedFacility.address.district}, {selectedFacility.address.city}
+            {selectedFacility.address}
           </p>
         ) : null}
         {selectedOption ? (

@@ -39,11 +39,21 @@ describe("mock reservation API", () => {
     expect(availability.some((option) => option.availableCount > 0)).toBe(true);
   });
 
+  it("browses the public catalog without using the protected facility API", async () => {
+    const facilities = await client.catalog.listFacilities();
+    expect(facilities.total).toBeGreaterThan(0);
+    const facility = facilities.items.find((item) => item.code === "HCM-01");
+    expect(facility?.availableUnits).toBeGreaterThan(0);
+
+    const unitTypes = await client.catalog.listUnitTypes(facility?.id ?? "");
+    expect(unitTypes.every((option) => option.facilityId === facility?.id)).toBe(true);
+    expect(unitTypes.some((option) => option.availableCount > 0)).toBe(true);
+  });
+
   it("does not create a reservation when payment fails and can retry successfully", async () => {
     const quote = await client.reservations.quote({
       facilityId: "fac-hcm-central",
-      unitType: "Kho tiêu chuẩn",
-      sizeLabel: "2 m²",
+      unitTypeId: "hcm-01-kho-tiêu-chuẩn-2-m²",
       startDate: "2026-10-01",
       durationMonths: 3,
     });

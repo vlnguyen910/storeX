@@ -14,6 +14,7 @@ export interface MockUser extends User {
 export interface MockStorageUnit {
   id: string;
   facilityId: string;
+  unitTypeId: string;
   code: string;
   unitType: string;
   sizeLabel: string;

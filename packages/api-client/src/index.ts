@@ -1,6 +1,9 @@
 import type {
   ApiEnvelope,
   ApiUser,
+  CatalogFacility,
+  CatalogFacilityListParams,
+  CatalogUnitType,
   ClientSession,
   ConfirmReservationInput,
   CookieSession,
@@ -159,6 +162,18 @@ function createStorexApiClientImpl(http: AxiosInstance, authMode: AuthMode) {
       availability: (facilityId: string) =>
         http
           .get<ApiEnvelope<UnitAvailabilityOption[]>>(`/facilities/${facilityId}/availability`)
+          .then(unwrap),
+    },
+    catalog: {
+      listFacilities: (params: CatalogFacilityListParams = {}) =>
+        http
+          .get<ApiEnvelope<PaginatedResult<CatalogFacility>>>("/catalog/facilities", { params })
+          .then(unwrap),
+      getFacility: (facilityId: string) =>
+        http.get<ApiEnvelope<CatalogFacility>>(`/catalog/facilities/${facilityId}`).then(unwrap),
+      listUnitTypes: (facilityId: string) =>
+        http
+          .get<ApiEnvelope<CatalogUnitType[]>>(`/catalog/facilities/${facilityId}/unit-types`)
           .then(unwrap),
     },
     reservations: {

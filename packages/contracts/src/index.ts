@@ -158,8 +158,34 @@ export const ApiFacilityAssignmentSchema = z.object({
 });
 export type ApiFacilityAssignment = z.infer<typeof ApiFacilityAssignmentSchema>;
 
+export const CatalogFacilitySchema = z.object({
+  id: z.string().uuid(),
+  code: z.string(),
+  name: z.string(),
+  address: z.string(),
+  description: z.string().nullable(),
+  availableUnits: z.number().int().nonnegative(),
+  totalUnits: z.number().int().positive(),
+  startingMonthlyPrice: z.number().nonnegative(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export type CatalogFacility = z.infer<typeof CatalogFacilitySchema>;
+
+export const CatalogUnitTypeSchema = z.object({
+  facilityId: z.string().uuid(),
+  unitTypeId: z.string().uuid(),
+  unitType: z.string(),
+  sizeLabel: z.string(),
+  sizeSqm: z.number().positive(),
+  monthlyPrice: z.number().nonnegative(),
+  availableCount: z.number().int().nonnegative(),
+});
+export type CatalogUnitType = z.infer<typeof CatalogUnitTypeSchema>;
+
 export const UnitAvailabilityOptionSchema = z.object({
   facilityId: z.string(),
+  unitTypeId: z.string(),
   unitType: z.string(),
   sizeLabel: z.string(),
   sizeSqm: z.number().positive(),
@@ -171,6 +197,7 @@ export type UnitAvailabilityOption = z.infer<typeof UnitAvailabilityOptionSchema
 export const ReservationQuoteSchema = z.object({
   id: z.string(),
   facilityId: z.string(),
+  unitTypeId: z.string(),
   unitType: z.string(),
   sizeLabel: z.string(),
   startDate: z.string(),
@@ -199,6 +226,7 @@ export const ReservationSchema = z.object({
   code: z.string(),
   customerId: z.string(),
   facility: FacilitySchema,
+  unitTypeId: z.string(),
   unitType: z.string(),
   sizeLabel: z.string(),
   startDate: z.string(),
@@ -251,10 +279,17 @@ export interface FacilityListParams {
   sort?: "name" | "price" | "availability";
 }
 
+export interface CatalogFacilityListParams {
+  search?: string;
+  city?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: "name" | "price" | "availability";
+}
+
 export interface ReservationQuoteInput {
   facilityId: string;
-  unitType: string;
-  sizeLabel: string;
+  unitTypeId: string;
   startDate: string;
   durationMonths: number;
 }

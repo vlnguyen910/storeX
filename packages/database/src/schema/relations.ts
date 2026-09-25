@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { accounts } from "./accounts";
-import { facilities, facilityAssignments } from "./facilities";
+import { facilities, facilityAssignments, storageUnits, unitTypes } from "./facilities";
 import { sessions } from "./sessions";
 import { users } from "./users";
 
@@ -12,6 +12,16 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const facilitiesRelations = relations(facilities, ({ many }) => ({
   assignments: many(facilityAssignments),
+  unitTypes: many(unitTypes),
+  storageUnits: many(storageUnits),
+}));
+
+export const unitTypesRelations = relations(unitTypes, ({ one, many }) => ({
+  facility: one(facilities, {
+    fields: [unitTypes.facilityId],
+    references: [facilities.id],
+  }),
+  storageUnits: many(storageUnits),
 }));
 
 export const facilityAssignmentsRelations = relations(facilityAssignments, ({ one }) => ({
@@ -22,6 +32,17 @@ export const facilityAssignmentsRelations = relations(facilityAssignments, ({ on
   facility: one(facilities, {
     fields: [facilityAssignments.facilityId],
     references: [facilities.id],
+  }),
+}));
+
+export const storageUnitsRelations = relations(storageUnits, ({ one }) => ({
+  facility: one(facilities, {
+    fields: [storageUnits.facilityId],
+    references: [facilities.id],
+  }),
+  unitType: one(unitTypes, {
+    fields: [storageUnits.unitTypeId],
+    references: [unitTypes.id],
   }),
 }));
 

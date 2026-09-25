@@ -61,7 +61,7 @@ export function addMonths(dateValue: string, months: number): string {
 export function optionsForUnits(units: MockStorageUnit[]): UnitAvailabilityOption[] {
   const groups = new Map<string, UnitAvailabilityOption>();
   for (const unit of units) {
-    const key = `${unit.facilityId}:${unit.unitType}:${unit.sizeLabel}`;
+    const key = `${unit.facilityId}:${unit.unitTypeId}`;
     const existing = groups.get(key);
     if (existing) {
       if (unit.status === StorageUnitStatus.AVAILABLE) existing.availableCount += 1;
@@ -69,6 +69,7 @@ export function optionsForUnits(units: MockStorageUnit[]): UnitAvailabilityOptio
     }
     groups.set(key, {
       facilityId: unit.facilityId,
+      unitTypeId: unit.unitTypeId,
       unitType: unit.unitType,
       sizeLabel: unit.sizeLabel,
       sizeSqm: unit.sizeSqm,

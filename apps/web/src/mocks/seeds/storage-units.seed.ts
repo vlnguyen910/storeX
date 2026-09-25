@@ -24,6 +24,9 @@ export const storageUnitSeeds: MockStorageUnit[] = facilitySeeds.flatMap(
     unitTemplates.map(([unitType, sizeLabel, sizeSqm, basePrice], index) => ({
       id: `${facility.code.toLowerCase()}-unit-${index + 1}`,
       facilityId: facility.id,
+      unitTypeId: `${facility.code.toLowerCase()}-${unitType}-${sizeLabel}`
+        .replace(/\s+/g, "-")
+        .toLowerCase(),
       code: `${facility.code}-${String(index + 1).padStart(3, "0")}`,
       unitType,
       sizeLabel,
