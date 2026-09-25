@@ -6,6 +6,7 @@ import { registerAuthHandlers } from "./handlers/auth.handlers";
 import { registerDashboardHandlers } from "./handlers/dashboards.handlers";
 import { registerFacilityHandlers } from "./handlers/facilities.handlers";
 import { registerReservationHandlers } from "./handlers/reservations.handlers";
+import { registerUsersHandlers } from "./handlers/users.handlers";
 
 let installed = false;
 
@@ -20,6 +21,7 @@ export function installMockApi(http: AxiosInstance): void {
   registerFacilityHandlers(mock);
   registerReservationHandlers(mock);
   registerDashboardHandlers(mock);
+  registerUsersHandlers(mock);
 
   mock.onAny().reply(404, errorBody(ApiErrorCode.NOT_FOUND, "Mock endpoint chưa được định nghĩa"));
 }

@@ -50,6 +50,8 @@ export function registerAuthHandlers(mock: MockAdapter): void {
       : [401, errorBody(ApiErrorCode.UNAUTHORIZED, "Vui lòng đăng nhập")];
   });
 
+  mock.onPost("/auth/logout").reply(200, envelope(null, "Đăng xuất thành công"));
+
   mock
     .onPost("/auth/forgot-password")
     .reply(200, envelope(null, "Nếu email tồn tại, hướng dẫn đã được gửi"));

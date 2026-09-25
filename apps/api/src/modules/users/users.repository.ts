@@ -1,4 +1,4 @@
-import { type Database, desc, eq, type User, users } from "@storex/database";
+import { type Database, desc, eq, type Role, type User, users } from "@storex/database";
 
 export class UsersRepository {
   constructor(private readonly db: Database) {}
@@ -10,5 +10,14 @@ export class UsersRepository {
 
   async list(limit: number, offset: number): Promise<User[]> {
     return this.db.select().from(users).limit(limit).offset(offset).orderBy(desc(users.createdAt));
+  }
+
+  async updateRole(id: string, role: Role): Promise<User | undefined> {
+    const [user] = await this.db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 }

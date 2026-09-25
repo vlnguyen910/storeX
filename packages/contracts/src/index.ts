@@ -71,7 +71,7 @@ export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
-  phone: z.string().optional(),
+  phone: z.string().nullable().optional(),
   role: UserRoleSchema,
   permissions: z.array(PermissionSchema),
   assignedFacilityIds: z.array(z.string()),
@@ -98,6 +98,10 @@ export const SessionSchema = z.object({
 });
 export type Session = z.infer<typeof SessionSchema>;
 export type SessionTokens = Pick<Session, "accessToken" | "refreshToken" | "expiresAt">;
+export interface CookieSession {
+  user: User;
+}
+export type ClientSession = Session | CookieSession;
 
 export const FacilityAddressSchema = z.object({
   line1: z.string(),
