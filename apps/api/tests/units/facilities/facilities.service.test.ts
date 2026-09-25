@@ -41,14 +41,19 @@ describe("facilities service", () => {
 
   it("throws NotFoundError when facility does not exist", async () => {
     const mockFacilitiesRepo = {
-      findById: async () => undefined,
+      findAccessibleById: async () => undefined,
     } as unknown as FacilitiesRepository;
 
     const mockUsersRepo = {} as UsersRepository;
     const service = new FacilitiesService(mockFacilitiesRepo, mockUsersRepo);
 
     await assert.rejects(
-      () => service.getFacilityById("00000000-0000-0000-0000-000000000000"),
+      () =>
+        service.getFacilityById("00000000-0000-0000-0000-000000000000", {
+          kind: "global",
+          userId: "admin-1",
+          role: "SYSTEM_ADMIN",
+        }),
       NotFoundError,
     );
   });

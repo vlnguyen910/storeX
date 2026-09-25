@@ -1,6 +1,13 @@
 import type { ApiFacility, ApiFacilityAssignment } from "@storex/contracts";
-import { BadRequestError, ConflictError, NotFoundError } from "../../common/errors/app-error";
+import type { Role } from "@storex/database";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../common/errors/app-error";
 import type { UsersRepository } from "../users/users.repository";
+import type { FacilityListScope, FacilityScope } from "./facilities.access";
 import { toApiFacility, toApiFacilityAssignment } from "./facilities.mapper";
 import type { FacilitiesRepository } from "./facilities.repository";
 import type {
@@ -32,22 +39,36 @@ export class FacilitiesService {
     return toApiFacility(facility);
   }
 
-  async getFacilityById(id: string): Promise<ApiFacility> {
-    const facility = await this.facilitiesRepository.findById(id);
+  async getFacilityById(id: string, scope: FacilityScope): Promise<ApiFacility> {
+    const facility = await this.facilitiesRepository.findAccessibleById(id, scope);
     if (!facility) {
+      if (scope.kind === "assigned")
+        throw new ForbiddenError("Bạn không có quyền truy cập cơ sở này");
       throw new NotFoundError(`Không tìm thấy cơ sở với id "${id}"`);
     }
     return toApiFacility(facility);
   }
 
-  async listFacilities(limit: number, offset: number, isActive?: boolean): Promise<ApiFacility[]> {
-    const list = await this.facilitiesRepository.list(limit, offset, isActive);
+  async listFacilities(
+    limit: number,
+    offset: number,
+    isActive: boolean | undefined,
+    scope: FacilityListScope,
+  ): Promise<ApiFacility[]> {
+    const list = await this.facilitiesRepository.listAccessible(limit, offset, isActive, scope);
     return list.map(toApiFacility);
   }
 
-  async updateFacility(id: string, input: UpdateFacilityBody): Promise<ApiFacility> {
-    const existing = await this.facilitiesRepository.findById(id);
+  async updateFacility(
+    id: string,
+    input: UpdateFacilityBody,
+    scope: FacilityScope,
+  ): Promise<ApiFacility> {
+    this.assertManagerScope(scope);
+    const existing = await this.facilitiesRepository.findAccessibleById(id, scope);
     if (!existing) {
+      if (scope.kind === "assigned")
+        throw new ForbiddenError("Bạn không có quyền truy cập cơ sở này");
       throw new NotFoundError(`Không tìm thấy cơ sở với id "${id}"`);
     }
 
@@ -58,8 +79,10 @@ export class FacilitiesService {
       }
     }
 
-    const updated = await this.facilitiesRepository.update(id, input);
+    const updated = await this.facilitiesRepository.updateAccessible(id, input, scope);
     if (!updated) {
+      if (scope.kind === "assigned")
+        throw new ForbiddenError("Bạn không có quyền truy cập cơ sở này");
       throw new NotFoundError(`Không tìm thấy cơ sở với id "${id}"`);
     }
     return toApiFacility(updated);
@@ -81,6 +104,10 @@ export class FacilitiesService {
 
     if (user.status !== "ACTIVE") {
       throw new BadRequestError("Không thể phân công cho tài khoản đang bị vô hiệu hóa");
+    }
+
+    if (user.role !== input.role) {
+      throw new BadRequestError("Vai trò phân công phải trùng với vai trò của tài khoản");
     }
 
     const assignment = await this.facilitiesRepository.upsertAssignment({
@@ -116,9 +143,13 @@ export class FacilitiesService {
     facilityId: string,
     limit: number,
     offset: number,
+    scope: FacilityScope,
   ): Promise<ApiFacilityAssignment[]> {
-    const facility = await this.facilitiesRepository.findById(facilityId);
+    this.assertManagerScope(scope);
+    const facility = await this.facilitiesRepository.findAccessibleById(facilityId, scope);
     if (!facility) {
+      if (scope.kind === "assigned")
+        throw new ForbiddenError("Bạn không có quyền truy cập cơ sở này");
       throw new NotFoundError(`Không tìm thấy cơ sở với id "${facilityId}"`);
     }
 
@@ -126,6 +157,7 @@ export class FacilitiesService {
       facilityId,
       limit,
       offset,
+      scope,
     );
     return rows.map(({ assignment, userName, userEmail }) =>
       toApiFacilityAssignment(assignment, {
@@ -137,13 +169,23 @@ export class FacilitiesService {
     );
   }
 
-  async listUserAssignments(userId: string): Promise<ApiFacilityAssignment[]> {
-    const rows = await this.facilitiesRepository.listUserAssignmentsWithFacilities(userId);
+  async listUserAssignments(
+    userId: string,
+    role: Role | null | undefined,
+  ): Promise<ApiFacilityAssignment[]> {
+    if (role !== "FACILITY_STAFF" && role !== "FACILITY_MANAGER") return [];
+    const rows = await this.facilitiesRepository.listUserAssignmentsWithFacilities(userId, role);
     return rows.map(({ assignment, facilityName, facilityCode }) =>
       toApiFacilityAssignment(assignment, {
         facilityName,
         facilityCode,
       }),
     );
+  }
+
+  private assertManagerScope(scope: FacilityScope): void {
+    if (scope.kind === "assigned" && scope.role !== "FACILITY_MANAGER") {
+      throw new ForbiddenError("Bạn không có quyền thực hiện thao tác này tại cơ sở");
+    }
   }
 }
