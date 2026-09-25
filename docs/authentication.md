@@ -6,10 +6,14 @@ The browser's stored user object only supports navigation; it does not grant API
 
 ## Local setup
 
-1. Copy `apps/api/.env.example` to `apps/api/.env` and set a private `BETTER_AUTH_SECRET`.
+1. Copy `apps/api/.env.example` to `apps/api/.env`. For local development, set
+   `NODE_ENV=development`, a private `BETTER_AUTH_SECRET` of at least 32 characters, and
+   `DATABASE_URL` for the database you intend to use. Set `DOCKER_DATABASE_URL` only when
+   you want to override that URL with a local Docker database.
 2. Copy `apps/web/.env.example` to `apps/web/.env.local`. The default mode is `remote`, with the
    API at `http://localhost:4000/api`. Set `NEXT_PUBLIC_API_MODE=mock` only to use demo accounts.
-3. Start PostgreSQL, apply the database migrations, and run the API and web workspaces.
+3. From the repository root, run `bun run db:migrate` to apply existing migrations to the
+   configured database, then start the API and web workspaces.
 4. Create the first account with Better Auth's email sign-up endpoint:
 
    ```sh
