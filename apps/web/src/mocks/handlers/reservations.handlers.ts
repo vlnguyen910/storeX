@@ -25,8 +25,7 @@ export function registerReservationHandlers(mock: MockAdapter): void {
     const unit = database.units.find(
       (candidate) =>
         candidate.facilityId === input.facilityId &&
-        candidate.unitType === input.unitType &&
-        candidate.sizeLabel === input.sizeLabel &&
+        candidate.unitTypeId === input.unitTypeId &&
         candidate.status === StorageUnitStatus.AVAILABLE,
     );
     if (!unit) {
@@ -35,6 +34,8 @@ export function registerReservationHandlers(mock: MockAdapter): void {
     const quote: ReservationQuote = {
       id: `quote-${crypto.randomUUID()}`,
       ...input,
+      unitType: unit.unitType,
+      sizeLabel: unit.sizeLabel,
       monthlyPrice: unit.monthlyPrice,
       rentalTotal: unit.monthlyPrice * input.durationMonths,
       depositAmount: unit.monthlyPrice,
@@ -70,8 +71,7 @@ export function registerReservationHandlers(mock: MockAdapter): void {
     const unit = database.units.find(
       (candidate) =>
         candidate.facilityId === quote.facilityId &&
-        candidate.unitType === quote.unitType &&
-        candidate.sizeLabel === quote.sizeLabel &&
+        candidate.unitTypeId === quote.unitTypeId &&
         candidate.status === StorageUnitStatus.AVAILABLE,
     );
     const facility = database.facilities.find((candidate) => candidate.id === quote.facilityId);
@@ -94,6 +94,7 @@ export function registerReservationHandlers(mock: MockAdapter): void {
       code: `RS-${String(database.reservations.length + 1).padStart(5, "0")}`,
       customerId: user.id,
       facility: hydrateFacility(database, facility),
+      unitTypeId: quote.unitTypeId,
       unitType: quote.unitType,
       sizeLabel: quote.sizeLabel,
       startDate: quote.startDate,

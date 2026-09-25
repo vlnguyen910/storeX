@@ -3,7 +3,7 @@ import { StorageUnitStatus } from "@storex/contracts";
 import { createSeedDatabase } from "./seeds";
 import type { MockDatabase } from "./types";
 
-const DATABASE_KEY = "storex.mock-db.v1";
+const DATABASE_KEY = "storex.mock-db.v2";
 
 export function getMockDatabase(): MockDatabase {
   if (typeof window === "undefined") {
@@ -19,7 +19,7 @@ export function getMockDatabase(): MockDatabase {
 
   try {
     const parsed = JSON.parse(persisted) as MockDatabase;
-    return parsed.version === 1 ? parsed : createSeedDatabase();
+    return parsed.version === 2 ? parsed : createSeedDatabase();
   } catch {
     return createSeedDatabase();
   }

@@ -19,11 +19,21 @@ const unavailableStatuses = [
   StorageUnitStatus.INSPECTION,
 ];
 
+function unitTypeIdFor(facilityIndex: number, unitType: string, sizeLabel: string): string {
+  const templateIndex = unitTemplates.findIndex(
+    ([candidateType, candidateSize]) => candidateType === unitType && candidateSize === sizeLabel,
+  );
+  return `00000000-0000-0000-${String(facilityIndex + 1).padStart(4, "0")}-${String(
+    templateIndex + 1,
+  ).padStart(12, "0")}`;
+}
+
 export const storageUnitSeeds: MockStorageUnit[] = facilitySeeds.flatMap(
   (facility, facilityIndex) =>
     unitTemplates.map(([unitType, sizeLabel, sizeSqm, basePrice], index) => ({
       id: `${facility.code.toLowerCase()}-unit-${index + 1}`,
       facilityId: facility.id,
+      unitTypeId: unitTypeIdFor(facilityIndex, unitType, sizeLabel),
       code: `${facility.code}-${String(index + 1).padStart(3, "0")}`,
       unitType,
       sizeLabel,

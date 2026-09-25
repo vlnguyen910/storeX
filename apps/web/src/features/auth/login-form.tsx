@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { UserRole } from "@storex/contracts";
 import axios from "axios";
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import Link from "next/link";
@@ -46,8 +47,11 @@ export function LoginForm() {
       showToast(`Chào mừng ${session.user.name}`);
       const requested = safeReturnTo(searchParams.get("returnTo"), roleHome[session.user.role]);
       const roleRoot = `/${roleHome[session.user.role].split("/")[1]}`;
+      const customerReservationEntry =
+        session.user.role === UserRole.STORAGE_CUSTOMER &&
+        (requested === routes.reservationNew || requested.startsWith(`${routes.reservationNew}?`));
       const destination =
-        requested === roleRoot || requested.startsWith(`${roleRoot}/`)
+        requested === roleRoot || requested.startsWith(`${roleRoot}/`) || customerReservationEntry
           ? requested
           : roleHome[session.user.role];
       router.replace(destination);

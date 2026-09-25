@@ -14,6 +14,7 @@ export interface MockUser extends User {
 export interface MockStorageUnit {
   id: string;
   facilityId: string;
+  unitTypeId: string;
   code: string;
   unitType: string;
   sizeLabel: string;
@@ -23,7 +24,7 @@ export interface MockStorageUnit {
 }
 
 export interface MockDatabase {
-  version: 1;
+  version: 2;
   users: MockUser[];
   facilities: Facility[];
   units: MockStorageUnit[];
