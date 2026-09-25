@@ -17,8 +17,7 @@ export function findApiEnvPath(): string | null {
   const candidates = [
     path.resolve(process.cwd(), "apps/api/.env"),
     path.resolve(process.cwd(), ".env"),
-    path.resolve(currentDir, "../../apps/api/.env"),
-    path.resolve(currentDir, "../apps/api/.env"),
+    path.resolve(currentDir, "../../../apps/api/.env"),
   ];
 
   for (const candidate of candidates) {
@@ -44,7 +43,7 @@ export function loadApiEnv(): Record<string, string> {
 
 /**
  * Resolves the database URL based on NODE_ENV:
- * - If NODE_ENV=develop or NODE_ENV=development: prioritize Docker Compose URL
+ * - In development: prioritize explicit Docker URL, then DATABASE_URL, then the local Docker default
  * - If NODE_ENV=production: read env from apps/api/.env (or process.env in production deployment)
  */
 export function getDatabaseUrl(): string {
@@ -56,8 +55,14 @@ export function getDatabaseUrl(): string {
   const isProduction = nodeEnv === "production";
 
   if (isDevelop) {
-    // In develop, prioritize Docker Compose URL
-    const url = getDockerComposeUrl();
+    // An explicit Docker URL opts into the local Compose database. Otherwise, honor
+    // DATABASE_URL so development tools can target a cloud development database.
+    const url =
+      process.env.DOCKER_DATABASE_URL ||
+      process.env.DATABASE_URL ||
+      apiEnv.DOCKER_DATABASE_URL ||
+      apiEnv.DATABASE_URL ||
+      DEFAULT_DOCKER_DATABASE_URL;
     process.env.DATABASE_URL = url;
     return url;
   }

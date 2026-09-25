@@ -41,9 +41,12 @@ function parseEnv(): Env {
   const isDevelop = rawNodeEnv === "develop" || rawNodeEnv === "development";
 
   if (isDevelop) {
-    // If NODE_ENV=develop / development: prioritize Docker Compose URL
+    // Explicit Docker configuration opts into local Compose; otherwise preserve
+    // DATABASE_URL, which may point to a cloud development database.
     process.env.DATABASE_URL =
-      process.env.DOCKER_DATABASE_URL || "postgres://postgres:postgres@localhost:5432/storex";
+      process.env.DOCKER_DATABASE_URL ||
+      process.env.DATABASE_URL ||
+      "postgres://postgres:postgres@localhost:5432/storex";
   }
 
   const result = envSchema.safeParse(process.env);
