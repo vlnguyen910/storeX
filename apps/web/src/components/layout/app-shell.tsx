@@ -8,6 +8,7 @@ import { type ReactNode, useState } from "react";
 import { navigationByRole } from "@/config/navigation";
 import { roleHome, routes } from "@/config/routes";
 import { useAuthStore } from "@/features/auth/auth-store";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { resetMockDatabase } from "@/mocks/database";
 
@@ -29,9 +30,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const navigation = navigationByRole[session.user.role];
 
-  function logout() {
-    clearSession();
-    router.replace(routes.login);
+  async function logout() {
+    try {
+      await api.auth.logout();
+      clearSession();
+      router.replace(routes.login);
+    } catch {
+      // Keep the current session visible so the user can retry the server logout.
+    }
   }
 
   function resetDemo() {
@@ -104,14 +110,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="mt-auto grid gap-1">
-          <button
-            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[10px] border-0 bg-transparent px-3 text-sm font-semibold text-[#bad2cc] hover:bg-white/10 hover:text-white"
-            type="button"
-            onClick={resetDemo}
-          >
-            <RotateCcw size={18} />
-            Khôi phục dữ liệu demo
-          </button>
+          {process.env.NEXT_PUBLIC_API_MODE === "mock" ? (
+            <button
+              className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[10px] border-0 bg-transparent px-3 text-sm font-semibold text-[#bad2cc] hover:bg-white/10 hover:text-white"
+              type="button"
+              onClick={resetDemo}
+            >
+              <RotateCcw size={18} />
+              Khôi phục dữ liệu demo
+            </button>
+          ) : null}
           <button
             className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[10px] border-0 bg-transparent px-3 text-sm font-semibold text-[#bad2cc] hover:bg-white/10 hover:text-white"
             type="button"

@@ -1,16 +1,18 @@
 "use client";
 
-import type { Session, SessionTokens } from "@storex/contracts";
+import type { ClientSession, SessionTokens } from "@storex/contracts";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 
 interface AuthState {
-  session: Session | null;
+  session: ClientSession | null;
   hydrated: boolean;
-  setSession: (session: Session) => void;
+  authReady: boolean;
+  setSession: (session: ClientSession) => void;
   updateTokens: (tokens: SessionTokens) => void;
   clearSession: () => void;
   setHydrated: (value: boolean) => void;
+  setAuthReady: (value: boolean) => void;
 }
 
 const noopStorage: StateStorage = {
@@ -24,6 +26,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       session: null,
       hydrated: false,
+      authReady: false,
       setSession: (session) => set({ session }),
       updateTokens: (tokens) =>
         set((state) => ({
@@ -31,9 +34,10 @@ export const useAuthStore = create<AuthState>()(
         })),
       clearSession: () => set({ session: null }),
       setHydrated: (hydrated) => set({ hydrated }),
+      setAuthReady: (authReady) => set({ authReady }),
     }),
     {
-      name: "storex.demo-session.v1",
+      name: "storex.auth-session.v2",
       storage: createJSONStorage(() =>
         typeof window === "undefined" ? noopStorage : window.sessionStorage,
       ),

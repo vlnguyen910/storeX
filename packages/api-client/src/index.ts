@@ -1,6 +1,9 @@
 import type {
   ApiEnvelope,
+  ApiUser,
+  ClientSession,
   ConfirmReservationInput,
+  CookieSession,
   DashboardSummary,
   Facility,
   FacilityListParams,
@@ -33,8 +36,15 @@ export interface HttpClientOptions {
   tokenProvider: TokenProvider;
 }
 
+export type AuthMode = "mock" | "better-auth";
+type SessionFor<Mode extends AuthMode> = Mode extends "mock"
+  ? Session
+  : Mode extends "better-auth"
+    ? CookieSession
+    : ClientSession;
+
 export function createHttpClient({ baseURL, tokenProvider }: HttpClientOptions): AxiosInstance {
-  const client = axios.create({ baseURL, timeout: 15_000 });
+  const client = axios.create({ baseURL, timeout: 15_000, withCredentials: true });
   let refreshPromise: Promise<SessionTokens> | null = null;
 
   client.interceptors.request.use((config) => {
@@ -88,15 +98,58 @@ function unwrap<T>(response: { data: ApiEnvelope<T> }): T {
   return response.data.data;
 }
 
-export function createStorexApiClient(http: AxiosInstance) {
+function toSession(user: ApiUser): CookieSession {
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      permissions: [],
+      assignedFacilityIds: [],
+    },
+  };
+}
+
+function createStorexApiClientImpl(http: AxiosInstance, authMode: AuthMode) {
   return {
     http,
     auth: {
-      login: (input: LoginInput) =>
-        http.post<ApiEnvelope<Session>>("/auth/login", input).then(unwrap),
-      me: () => http.get<ApiEnvelope<Session["user"]>>("/auth/me").then(unwrap),
+      login: async (input: LoginInput) => {
+        if (authMode === "mock") {
+          return http.post<ApiEnvelope<Session>>("/auth/login", input).then(unwrap);
+        }
+
+        await http.post("/auth/sign-in/email", input);
+        try {
+          const user = await http.get<ApiEnvelope<ApiUser>>("/users/me").then(unwrap);
+          return toSession(user);
+        } catch (error) {
+          await http.post("/auth/sign-out").catch(() => undefined);
+          throw error;
+        }
+      },
+      me: async () => {
+        if (authMode === "mock") {
+          return http.get<ApiEnvelope<Session["user"]>>("/auth/me").then(unwrap);
+        }
+
+        const user = await http.get<ApiEnvelope<ApiUser>>("/users/me").then(unwrap);
+        return toSession(user).user;
+      },
+      logout: () =>
+        authMode === "mock"
+          ? http.post<ApiEnvelope<null>>("/auth/logout").then(unwrap)
+          : http.post("/auth/sign-out").then(() => null),
       forgotPassword: (email: string) =>
         http.post<ApiEnvelope<null>>("/auth/forgot-password", { email }).then(unwrap),
+    },
+    users: {
+      list: () =>
+        http.get<ApiEnvelope<ApiUser[]>>("/users", { params: { limit: 100 } }).then(unwrap),
+      setRole: (userId: string, role: ApiUser["role"]) =>
+        http.patch<ApiEnvelope<ApiUser>>(`/users/${userId}/role`, { role }).then(unwrap),
     },
     facilities: {
       list: (params: FacilityListParams = {}) =>
@@ -124,4 +177,32 @@ export function createStorexApiClient(http: AxiosInstance) {
   };
 }
 
-export type StorexApiClient = ReturnType<typeof createStorexApiClient>;
+export type StorexApiClient<Mode extends AuthMode = "mock"> = Omit<
+  ReturnType<typeof createStorexApiClientImpl>,
+  "auth"
+> & {
+  auth: Omit<ReturnType<typeof createStorexApiClientImpl>["auth"], "login" | "me"> & {
+    login: (input: LoginInput) => Promise<SessionFor<Mode>>;
+    me: () => Promise<SessionFor<Mode>["user"]>;
+  };
+};
+
+export function createStorexApiClient(http: AxiosInstance): StorexApiClient<"mock">;
+export function createStorexApiClient(
+  http: AxiosInstance,
+  authMode: "mock",
+): StorexApiClient<"mock">;
+export function createStorexApiClient(
+  http: AxiosInstance,
+  authMode: "better-auth",
+): StorexApiClient<"better-auth">;
+export function createStorexApiClient(
+  http: AxiosInstance,
+  authMode: AuthMode,
+): StorexApiClient<AuthMode>;
+export function createStorexApiClient(
+  http: AxiosInstance,
+  authMode: AuthMode = "mock",
+): StorexApiClient<AuthMode> {
+  return createStorexApiClientImpl(http, authMode) as StorexApiClient<AuthMode>;
+}

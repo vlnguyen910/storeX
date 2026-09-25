@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserRole } from "@storex/contracts";
 import axios from "axios";
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +22,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
+  const isMockMode = process.env.NEXT_PUBLIC_API_MODE === "mock";
   const router = useRouter();
   const searchParams = useSearchParams();
   const setSession = useAuthStore((state) => state.setSession);
@@ -34,7 +34,9 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "customer@storex.vn", password: "Demo@123" },
+    defaultValues: isMockMode
+      ? { email: "customer@storex.vn", password: "Demo@123" }
+      : { email: "", password: "" },
   });
 
   async function onSubmit(values: FormValues) {
@@ -43,10 +45,11 @@ export function LoginForm() {
       setSession(session);
       showToast(`Chào mừng ${session.user.name}`);
       const requested = safeReturnTo(searchParams.get("returnTo"), roleHome[session.user.role]);
+      const roleRoot = `/${roleHome[session.user.role].split("/")[1]}`;
       const destination =
-        requested.startsWith("/customer") && session.user.role !== UserRole.STORAGE_CUSTOMER
-          ? roleHome[session.user.role]
-          : requested;
+        requested === roleRoot || requested.startsWith(`${roleRoot}/`)
+          ? requested
+          : roleHome[session.user.role];
       router.replace(destination);
     } catch (error) {
       const message = axios.isAxiosError(error)
@@ -91,29 +94,31 @@ export function LoginForm() {
           Đăng nhập
         </Button>
       </form>
-      <div className="mt-5 rounded-[14px] bg-[#f5f8f7] p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <ShieldCheck size={18} />
-          <strong>Tài khoản demo</strong>
-          <span className="ml-auto text-xs text-muted">Mật khẩu: Demo@123</span>
+      {isMockMode ? (
+        <div className="mt-5 rounded-[14px] bg-[#f5f8f7] p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <ShieldCheck size={18} />
+            <strong>Tài khoản demo</strong>
+            <span className="ml-auto text-xs text-muted">Mật khẩu: Demo@123</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 max-[560px]:grid-cols-1">
+            {demoAccounts.map((account) => (
+              <button
+                key={account.email}
+                type="button"
+                className="cursor-pointer rounded-[9px] border border-[#dce4e1] bg-white p-2.5 text-left hover:border-primary"
+                onClick={() => {
+                  setValue("email", account.email, { shouldValidate: true });
+                  setValue("password", "Demo@123", { shouldValidate: true });
+                }}
+              >
+                <strong className="block text-xs">{account.label}</strong>
+                <small className="mt-1 block text-[0.68rem] text-muted">{account.email}</small>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 max-[560px]:grid-cols-1">
-          {demoAccounts.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              className="cursor-pointer rounded-[9px] border border-[#dce4e1] bg-white p-2.5 text-left hover:border-primary"
-              onClick={() => {
-                setValue("email", account.email, { shouldValidate: true });
-                setValue("password", "Demo@123", { shouldValidate: true });
-              }}
-            >
-              <strong className="block text-xs">{account.label}</strong>
-              <small className="mt-1 block text-[0.68rem] text-muted">{account.email}</small>
-            </button>
-          ))}
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 }
