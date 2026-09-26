@@ -1,5 +1,5 @@
 {
-  "id": "ed0eb532-3f7c-4823-a818-9718448eeb50",
+  "id": "1ae32ea3-31cb-4875-bae1-33ebd5329988",
   "prevId": "cda609f2-193b-44a9-ada1-7d5400240d9e",
   "version": "7",
   "dialect": "postgresql",
@@ -754,7 +754,7 @@
           "name": "access_token_hash",
           "type": "varchar(128)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "status": {
           "name": "status",
