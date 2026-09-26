@@ -1,4 +1,5 @@
-import { NewReservationScreen } from "@/modules/customer/reservations/new-reservation-screen";
+import { redirect } from "next/navigation";
+
 export default function NewReservationPage() {
-  return <NewReservationScreen />;
+  redirect("/reservations/new");
 }
