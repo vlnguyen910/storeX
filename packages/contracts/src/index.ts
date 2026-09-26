@@ -62,6 +62,9 @@ export enum ApiErrorCode {
   UNIT_UNAVAILABLE = "UNIT_UNAVAILABLE",
   RESERVATION_CONFLICT = "RESERVATION_CONFLICT",
   PAYMENT_FAILED = "PAYMENT_FAILED",
+  CAPACITY_UNAVAILABLE = "CAPACITY_UNAVAILABLE",
+  INVALID_CHECK_IN = "INVALID_CHECK_IN",
+  PRICING_NOT_CONFIGURED = "PRICING_NOT_CONFIGURED",
 }
 
 export const UserRoleSchema = z.nativeEnum(UserRole);
@@ -300,6 +303,36 @@ export interface ConfirmReservationInput {
   cardBrand: string;
   cardLast4: string;
 }
+
+export const ReservationDraftContactSchema = z.object({
+  fullName: z.string().trim().min(2).max(150),
+  email: z.string().email().max(320),
+  phone: z.string().regex(/^\+[1-9]\d{7,14}$/),
+});
+export type ReservationDraftContact = z.infer<typeof ReservationDraftContactSchema>;
+
+export const ReservationDraftInputSchema = z.object({
+  facilityId: z.string().uuid(),
+  unitTypeId: z.string().uuid(),
+  checkInAt: z.string().datetime({ offset: true }),
+  durationMonths: z.number().int().min(1).max(12),
+  contact: ReservationDraftContactSchema,
+});
+export type ReservationDraftInput = z.infer<typeof ReservationDraftInputSchema>;
+
+export const ReservationDraftSchema = z.object({
+  id: z.string().uuid(),
+  facilityId: z.string().uuid(),
+  unitTypeId: z.string().uuid(),
+  checkInAt: z.string().datetime(),
+  rentalEndAt: z.string().datetime(),
+  durationMonths: z.number().int().min(1).max(12),
+  contact: ReservationDraftContactSchema,
+  status: z.literal("DRAFT"),
+  pricingStatus: z.literal("PRICING_NOT_CONFIGURED"),
+  pricing: z.null(),
+});
+export type ReservationDraft = z.infer<typeof ReservationDraftSchema>;
 
 export interface DashboardKpi {
   label: string;

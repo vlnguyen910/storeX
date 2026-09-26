@@ -50,6 +50,13 @@
       "when": 1790402307295,
       "tag": "0006_bright_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790407899196,
+      "tag": "0007_slippery_stardust",
+      "breakpoints": true
     }
   ]
 }

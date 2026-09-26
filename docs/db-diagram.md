@@ -6,6 +6,10 @@ The `facilities` table is the parent entity for public inventory browsing.
 erDiagram
   facilities ||--o{ unit_types : offers
   unit_types ||--o{ storage_units : materializes
+  facilities ||--o{ facility_operating_hours : schedules
+  facilities ||--o{ reservation_drafts : receives
+  unit_types ||--o{ reservation_drafts : selects
+  unit_types ||--o{ capacity_allocations : allocates
   facilities ||--o{ facility_assignments : has
   users ||--o{ facility_assignments : receives
 
@@ -35,6 +39,40 @@ erDiagram
     uuid unit_type_id FK
     varchar code UK
     storage_unit_status status
+  }
+
+  facility_operating_hours {
+    uuid id PK
+    uuid facility_id FK
+    integer day_of_week
+    time open_time
+    time close_time
+    varchar timezone
+  }
+
+  reservation_drafts {
+    uuid id PK
+    uuid facility_id FK
+    uuid unit_type_id FK
+    timestamptz check_in_at
+    timestamptz rental_end_at
+    integer duration_months
+    varchar contact_name
+    varchar contact_email
+    varchar contact_phone
+    reservation_draft_status status
+    reservation_pricing_status pricing_status
+  }
+
+  capacity_allocations {
+    uuid id PK
+    uuid facility_id FK
+    uuid unit_type_id FK
+    uuid reference_id
+    capacity_allocation_kind kind
+    capacity_allocation_status status
+    timestamptz starts_at
+    timestamptz ends_at
   }
 ```
 
