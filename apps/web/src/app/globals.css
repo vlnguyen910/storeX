@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@keyframes global-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
 @theme {
   --color-primary: #165f4d;
   --color-primary-dark: #0f493b;

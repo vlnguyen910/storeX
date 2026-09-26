@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { api } from "@/lib/api";
 import { installMockApi } from "@/mocks/install-mock-api";
+import { GlobalActivityIndicator } from "./global-activity-indicator";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -41,6 +42,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
+        <GlobalActivityIndicator />
         {ready ? (
           children
         ) : (
