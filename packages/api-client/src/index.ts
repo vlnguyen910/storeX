@@ -15,6 +15,7 @@ import type {
   Reservation,
   ReservationDraft,
   ReservationDraftInput,
+  ReservationHold,
   ReservationQuote,
   ReservationQuoteInput,
   Session,
@@ -181,6 +182,12 @@ function createStorexApiClientImpl(http: AxiosInstance, authMode: AuthMode) {
     reservations: {
       createDraft: (input: ReservationDraftInput) =>
         http.post<ApiEnvelope<ReservationDraft>>("/reservations/drafts", input).then(unwrap),
+      createHold: (draftId: string, draftAccessToken: string) =>
+        http
+          .post<ApiEnvelope<ReservationHold>>(`/reservations/drafts/${draftId}/hold`, {
+            draftAccessToken,
+          })
+          .then(unwrap),
       quote: (input: ReservationQuoteInput) =>
         http.post<ApiEnvelope<ReservationQuote>>("/reservations/quote", input).then(unwrap),
       confirm: (input: ConfirmReservationInput) =>

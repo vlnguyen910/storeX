@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { ReservationDraft, ReservationDraftContact } from "@storex/contracts";
+import type { ReservationDraft, ReservationDraftContact, ReservationHold } from "@storex/contracts";
 import { AppError, BadRequestError, NotFoundError } from "../../common/errors/app-error";
 import type { ReservationsRepository } from "./reservations.repository";
 import type { CreateReservationDraftBody } from "./reservations.schema";
@@ -102,6 +102,23 @@ export class ReservationsService {
       status: "DRAFT",
       pricingStatus: "PRICING_NOT_CONFIGURED",
       pricing: null,
+    };
+  }
+
+  async createHold(draftId: string, draftAccessToken: string): Promise<ReservationHold> {
+    const hold = await this.repository.createHold(draftId, hashToken(draftAccessToken));
+    if (hold === null) throw new NotFoundError("Không tìm thấy reservation draft");
+    if (!hold) {
+      throw new AppError("Unit Type không còn capacity trong kỳ thuê", 409, "HOLD_CONFLICT");
+    }
+    return {
+      holdId: hold.id,
+      holdToken: draftAccessToken,
+      unitTypeId: hold.unitTypeId,
+      startsAt: hold.startsAt.toISOString(),
+      endsAt: hold.endsAt.toISOString(),
+      expiresAt: hold.expiresAt?.toISOString() ?? new Date(0).toISOString(),
+      status: "ACTIVE",
     };
   }
 }

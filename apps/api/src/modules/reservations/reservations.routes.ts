@@ -5,6 +5,8 @@ import { ReservationsRepository } from "./reservations.repository";
 import {
   type CreateReservationDraftBody,
   createReservationDraftBodySchema,
+  createReservationHoldBodySchema,
+  reservationDraftIdParamSchema,
 } from "./reservations.schema";
 import { ReservationsService } from "./reservations.service";
 
@@ -20,6 +22,27 @@ export const reservationsRoutes: FastifyPluginAsync = async (fastify) => {
         .status(201)
         .send(
           successResponse(await service.createDraft(request.body as CreateReservationDraftBody)),
+        ),
+  );
+
+  typedApp.post(
+    "/drafts/:draftId/hold",
+    {
+      schema: {
+        params: reservationDraftIdParamSchema,
+        body: createReservationHoldBodySchema,
+      },
+    },
+    async (request, reply) =>
+      reply
+        .status(201)
+        .send(
+          successResponse(
+            await service.createHold(
+              (request.params as { draftId: string }).draftId,
+              (request.body as { draftAccessToken: string }).draftAccessToken,
+            ),
+          ),
         ),
   );
 };
