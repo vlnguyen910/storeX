@@ -3,6 +3,8 @@ import {
   type ConfirmReservationInput,
   PaymentStatus,
   type Reservation,
+  type ReservationDraft,
+  type ReservationDraftInput,
   type ReservationQuote,
   type ReservationQuoteInput,
   ReservationStatus,
@@ -14,6 +16,34 @@ import { addMonths, currentUser, envelope, errorBody, parseBody } from "../core/
 import { getMockDatabase, hydrateFacility, saveMockDatabase } from "../database";
 
 export function registerReservationHandlers(mock: MockAdapter): void {
+  mock.onPost("/reservations/drafts").reply((config) => {
+    const database = getMockDatabase();
+    const input = parseBody<ReservationDraftInput>(config.data);
+    const unit = database.units.find(
+      (candidate) =>
+        candidate.facilityId === input.facilityId &&
+        candidate.unitTypeId === input.unitTypeId &&
+        candidate.status === StorageUnitStatus.AVAILABLE,
+    );
+    const facility = database.facilities.find((candidate) => candidate.id === input.facilityId);
+    if (!unit || !facility) {
+      return [409, errorBody(ApiErrorCode.CAPACITY_UNAVAILABLE, "Unit Type không còn capacity")];
+    }
+    const draft: ReservationDraft = {
+      id: crypto.randomUUID(),
+      facilityId: input.facilityId,
+      unitTypeId: input.unitTypeId,
+      checkInAt: input.checkInAt,
+      rentalEndAt: addMonths(input.checkInAt, input.durationMonths),
+      durationMonths: input.durationMonths,
+      contact: input.contact,
+      status: "DRAFT",
+      pricingStatus: "PRICING_NOT_CONFIGURED",
+      pricing: null,
+    };
+    return [201, envelope(draft)];
+  });
+
   mock.onPost("/reservations/quote").reply((config) => {
     const database = getMockDatabase();
     const user = currentUser(config, database);

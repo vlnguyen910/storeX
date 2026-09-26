@@ -1,6 +1,7 @@
 export {
   and,
   asc,
+  count,
   desc,
   eq,
   exists,
@@ -10,7 +11,9 @@ export {
   inArray,
   isNotNull,
   isNull,
+  lt,
   lte,
+  notInArray,
   or,
   sql,
 } from "drizzle-orm";

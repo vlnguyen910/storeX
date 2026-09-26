@@ -13,6 +13,8 @@ import type {
   LoginInput,
   PaginatedResult,
   Reservation,
+  ReservationDraft,
+  ReservationDraftInput,
   ReservationQuote,
   ReservationQuoteInput,
   Session,
@@ -177,6 +179,8 @@ function createStorexApiClientImpl(http: AxiosInstance, authMode: AuthMode) {
           .then(unwrap),
     },
     reservations: {
+      createDraft: (input: ReservationDraftInput) =>
+        http.post<ApiEnvelope<ReservationDraft>>("/reservations/drafts", input).then(unwrap),
       quote: (input: ReservationQuoteInput) =>
         http.post<ApiEnvelope<ReservationQuote>>("/reservations/quote", input).then(unwrap),
       confirm: (input: ConfirmReservationInput) =>

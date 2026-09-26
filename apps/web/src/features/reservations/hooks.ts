@@ -1,6 +1,10 @@
 "use client";
 
-import type { ConfirmReservationInput, ReservationQuoteInput } from "@storex/contracts";
+import type {
+  ConfirmReservationInput,
+  ReservationDraftInput,
+  ReservationQuoteInput,
+} from "@storex/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -24,6 +28,12 @@ export function useReservation(id: string) {
 export function useReservationQuote() {
   return useMutation({
     mutationFn: (input: ReservationQuoteInput) => api.reservations.quote(input),
+  });
+}
+
+export function useReservationDraft() {
+  return useMutation({
+    mutationFn: (input: ReservationDraftInput) => api.reservations.createDraft(input),
   });
 }
 

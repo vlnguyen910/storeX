@@ -7,6 +7,7 @@ import {
   pgTable,
   real,
   text,
+  time,
   timestamp,
   uniqueIndex,
   uuid,
@@ -120,3 +121,109 @@ export type NewStorageUnit = typeof storageUnits.$inferInsert;
 
 export type UnitType = typeof unitTypes.$inferSelect;
 export type NewUnitType = typeof unitTypes.$inferInsert;
+
+export const facilityOperatingHours = pgTable(
+  "facility_operating_hours",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    facilityId: uuid()
+      .notNull()
+      .references(() => facilities.id, { onDelete: "cascade" }),
+    dayOfWeek: integer().notNull(),
+    openTime: time().notNull(),
+    closeTime: time().notNull(),
+    timezone: varchar({ length: 64 }).default("Asia/Ho_Chi_Minh").notNull(),
+  },
+  (table) => [
+    uniqueIndex("facility_operating_hours_facility_day_idx").on(table.facilityId, table.dayOfWeek),
+    index("facility_operating_hours_facility_idx").on(table.facilityId),
+  ],
+);
+
+export const RESERVATION_DRAFT_STATUSES = ["DRAFT"] as const;
+export const RESERVATION_PRICING_STATUSES = ["PRICING_NOT_CONFIGURED"] as const;
+export const CAPACITY_ALLOCATION_KINDS = ["HOLD", "BOOKING"] as const;
+export const CAPACITY_ALLOCATION_STATUSES = ["ACTIVE", "RELEASED", "EXPIRED"] as const;
+
+export const reservationDraftStatusEnum = pgEnum(
+  "reservation_draft_status",
+  RESERVATION_DRAFT_STATUSES,
+);
+export const reservationPricingStatusEnum = pgEnum(
+  "reservation_pricing_status",
+  RESERVATION_PRICING_STATUSES,
+);
+export const capacityAllocationKindEnum = pgEnum(
+  "capacity_allocation_kind",
+  CAPACITY_ALLOCATION_KINDS,
+);
+export const capacityAllocationStatusEnum = pgEnum(
+  "capacity_allocation_status",
+  CAPACITY_ALLOCATION_STATUSES,
+);
+
+export const reservationDrafts = pgTable(
+  "reservation_drafts",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    facilityId: uuid()
+      .notNull()
+      .references(() => facilities.id, { onDelete: "restrict" }),
+    unitTypeId: uuid().notNull(),
+    checkInAt: timestamp({ withTimezone: true }).notNull(),
+    rentalEndAt: timestamp({ withTimezone: true }).notNull(),
+    durationMonths: integer().notNull(),
+    contactName: varchar({ length: 150 }).notNull(),
+    contactEmail: varchar({ length: 320 }).notNull(),
+    contactPhone: varchar({ length: 32 }).notNull(),
+    status: reservationDraftStatusEnum().default("DRAFT").notNull(),
+    pricingStatus: reservationPricingStatusEnum().default("PRICING_NOT_CONFIGURED").notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.unitTypeId, table.facilityId],
+      foreignColumns: [unitTypes.id, unitTypes.facilityId],
+    }).onDelete("restrict"),
+    index("reservation_drafts_facility_idx").on(table.facilityId),
+    index("reservation_drafts_unit_type_idx").on(table.unitTypeId),
+  ],
+);
+
+export const capacityAllocations = pgTable(
+  "capacity_allocations",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    facilityId: uuid()
+      .notNull()
+      .references(() => facilities.id, { onDelete: "restrict" }),
+    unitTypeId: uuid().notNull(),
+    referenceId: uuid().notNull(),
+    kind: capacityAllocationKindEnum().notNull(),
+    status: capacityAllocationStatusEnum().default("ACTIVE").notNull(),
+    startsAt: timestamp({ withTimezone: true }).notNull(),
+    endsAt: timestamp({ withTimezone: true }).notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.unitTypeId, table.facilityId],
+      foreignColumns: [unitTypes.id, unitTypes.facilityId],
+    }).onDelete("restrict"),
+    index("capacity_allocations_unit_type_period_idx").on(
+      table.unitTypeId,
+      table.startsAt,
+      table.endsAt,
+    ),
+    index("capacity_allocations_reference_idx").on(table.referenceId),
+  ],
+);
+
+export type FacilityOperatingHours = typeof facilityOperatingHours.$inferSelect;
+export type NewFacilityOperatingHours = typeof facilityOperatingHours.$inferInsert;
+export type ReservationDraft = typeof reservationDrafts.$inferSelect;
+export type NewReservationDraft = typeof reservationDrafts.$inferInsert;
+export type CapacityAllocation = typeof capacityAllocations.$inferSelect;
+export type NewCapacityAllocation = typeof capacityAllocations.$inferInsert;
