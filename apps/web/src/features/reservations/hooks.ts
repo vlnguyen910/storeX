@@ -37,6 +37,13 @@ export function useReservationDraft() {
   });
 }
 
+export function useReservationHold() {
+  return useMutation({
+    mutationFn: ({ draftId, draftAccessToken }: { draftId: string; draftAccessToken: string }) =>
+      api.reservations.createHold(draftId, draftAccessToken),
+  });
+}
+
 export function useConfirmReservation() {
   const queryClient = useQueryClient();
   return useMutation({
