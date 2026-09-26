@@ -125,8 +125,8 @@ export function ReservationWizard() {
   }
 
   return (
-    <div className="mx-auto grid max-w-[980px] grid-cols-[minmax(0,1fr)_300px] items-start gap-6 max-[800px]:grid-cols-1">
-      <Card className="flex min-h-[510px] flex-col max-[560px]:p-[19px]">
+    <div className="mx-auto w-full max-w-[980px]">
+      <Card className="mx-auto flex min-h-[510px] w-full max-w-[900px] flex-col max-[560px]:p-[19px]">
         <ol className="relative mb-7 flex list-none justify-between p-0 before:absolute before:top-[17px] before:right-[7%] before:left-[7%] before:h-0.5 before:bg-slate-200">
           {["Cơ sở", "Unit Type", "Thông tin thuê", "Draft"].map((label, index) => (
             <li
