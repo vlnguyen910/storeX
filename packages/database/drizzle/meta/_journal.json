@@ -71,6 +71,13 @@
       "when": 1790412304156,
       "tag": "0009_equal_triathlon",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790415465667,
+      "tag": "0010_oval_maelstrom",
+      "breakpoints": true
     }
   ]
 }
