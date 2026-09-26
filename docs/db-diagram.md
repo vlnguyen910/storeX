@@ -1,17 +1,94 @@
-# storeX database diagram — inventory additions for Reservation M1
+# storeX database diagram
 
-The `facilities` table is the parent entity for public inventory browsing.
+This diagram records every table and column currently declared in
+`packages/database/src/schema`. Booking, Rental, Payment and guest access tables
+are future work and do not exist in the current schema.
 
 ```mermaid
 erDiagram
+  users o|--o| customers : links_after_verification
+  users ||--o{ accounts : authenticates_with
+  users ||--o{ sessions : signs_in_with
+  users ||--o{ facility_assignments : receives
+  facilities ||--o{ facility_assignments : has
   facilities ||--o{ unit_types : offers
   unit_types ||--o{ storage_units : materializes
+  facilities ||--o{ storage_units : contains
   facilities ||--o{ facility_operating_hours : schedules
   facilities ||--o{ reservation_drafts : receives
   unit_types ||--o{ reservation_drafts : selects
   unit_types ||--o{ capacity_allocations : allocates
-  facilities ||--o{ facility_assignments : has
-  users ||--o{ facility_assignments : receives
+  facilities ||--o{ capacity_allocations : reserves
+
+  users {
+    uuid id PK
+    text name
+    varchar email UK
+    boolean email_verified
+    text image
+    varchar phone UK
+    varchar password_hash
+    role role
+    status status
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  customers {
+    uuid id PK
+    uuid user_id FK,UK "nullable"
+    varchar full_name
+    varchar email UK "normalized lookup"
+    varchar phone
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  accounts {
+    text id PK
+    uuid user_id FK
+    text account_id
+    text provider_id
+    text access_token
+    text refresh_token
+    text id_token
+    timestamptz access_token_expires_at
+    timestamptz refresh_token_expires_at
+    text scope
+    text password
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  sessions {
+    text id PK
+    uuid user_id FK
+    text token UK
+    timestamptz expires_at
+    text ip_address
+    text user_agent
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  verifications {
+    text id PK
+    text identifier
+    text value
+    timestamptz expires_at
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  facility_assignments {
+    uuid id PK
+    uuid user_id FK
+    uuid facility_id FK
+    timestamptz assigned_at
+    timestamptz ended_at
+    boolean is_active
+    role role
+  }
 
   facilities {
     uuid id PK
@@ -20,6 +97,8 @@ erDiagram
     text address
     text description
     boolean is_active
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   unit_types {
@@ -31,6 +110,8 @@ erDiagram
     real size_sqm
     integer monthly_price
     boolean is_active
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   storage_units {
@@ -39,6 +120,8 @@ erDiagram
     uuid unit_type_id FK
     varchar code UK
     storage_unit_status status
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   facility_operating_hours {
@@ -62,6 +145,8 @@ erDiagram
     varchar contact_phone
     reservation_draft_status status
     reservation_pricing_status pricing_status
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   capacity_allocations {
@@ -73,16 +158,96 @@ erDiagram
     capacity_allocation_status status
     timestamptz starts_at
     timestamptz ends_at
+    timestamptz created_at
+    timestamptz updated_at
   }
 ```
 
+## Existing constraints and behavior
+
+- UUID primary keys on `users`, `customers`, `facilities`, `facility_assignments`,
+  `unit_types`, `storage_units`, `facility_operating_hours`, `reservation_drafts`
+  and `capacity_allocations` default to generated random UUIDs. Auth tables
+  `accounts`, `sessions` and `verifications` use text primary keys.
+- `users.email`, `users.phone`, `facilities.code`, `storage_units.code` and
+  `sessions.token` are unique. `users.phone` is nullable. `customers.user_id` is
+  nullable and unique. `customers.email` is unique by its trimmed, lowercase
+  value; its index is an expression index, not a plain column constraint.
+- Varchar limits are `users.email` 255, `users.phone` 20,
+  `users.password_hash` 255; `customers.full_name` 150, `customers.email` 320,
+  `customers.phone` 32; `facilities.code` 50, `facilities.name` 150;
+  `unit_types.code` 80, `unit_types.name` 100, `unit_types.size_label` 50;
+  `storage_units.code` 80; `facility_operating_hours.timezone` 64; and
+  reservation draft contact name/email/phone 150/320/32.
+- Nullable columns are `users.image`, `users.phone`, `users.password_hash`,
+  `users.role`, `users.status`, `customers.user_id`, `facilities.description`,
+  `facility_assignments.ended_at`, `sessions.ip_address`,
+  `sessions.user_agent`, and the optional token, expiry, scope and password
+  fields in `accounts`. Every other column shown is required.
+- Enum values are `role`: `CUSTOMER`, `FACILITY_STAFF`, `FACILITY_MANAGER`,
+  `BUSINESS_OPERATION_MANAGER`, `SYSTEM_ADMIN`; `status`: `ACTIVE`, `INACTIVE`;
+  `storage_unit_status`: `AVAILABLE`, `RESERVED`, `OCCUPIED`, `MAINTENANCE`,
+  `INSPECTION`, `RETURN_PENDING`, `LOCKED`, `INACTIVE`;
+  `reservation_draft_status`: `DRAFT`; `reservation_pricing_status`:
+  `PRICING_NOT_CONFIGURED`; `capacity_allocation_kind`: `HOLD`, `BOOKING`; and
+  `capacity_allocation_status`: `ACTIVE`, `RELEASED`, `EXPIRED`.
+- Composite unique indexes exist on `facility_assignments(user_id, facility_id)`,
+  `unit_types(facility_id, code)`, `unit_types(id, facility_id)` and
+  `facility_operating_hours(facility_id, day_of_week)`.
+- `storage_units`, `reservation_drafts` and `capacity_allocations` each use a
+  composite foreign key `(unit_type_id, facility_id)` to
+  `unit_types(id, facility_id)`. `capacity_allocations.reference_id` is a UUID
+  reference value without a database foreign key at this stage.
+- User foreign keys use `ON DELETE CASCADE` for `accounts`, `sessions` and
+  `facility_assignments`, and `ON DELETE SET NULL` for `customers.user_id`.
+  Facility foreign keys use `ON DELETE CASCADE` for `unit_types`,
+  `storage_units`, `facility_operating_hours` and `facility_assignments`, and
+  `ON DELETE RESTRICT` for reservation drafts and capacity allocations.
+  Composite Unit Type foreign keys use `ON DELETE RESTRICT`.
+- `created_at` and `updated_at` columns default to `now()` wherever shown;
+  `assigned_at` also defaults to `now()`. `facilities.is_active`,
+  `unit_types.is_active` and `facility_assignments.is_active` default to true.
+  `storage_units.status` defaults to `AVAILABLE`,
+  `reservation_drafts.status` to `DRAFT`,
+  `reservation_drafts.pricing_status` to `PRICING_NOT_CONFIGURED`, and
+  `capacity_allocations.status` to `ACTIVE`. The default operating timezone is
+  `Asia/Ho_Chi_Minh`.
+
 For public catalog queries, a facility is eligible when it is active and has at
-least one `storage_units.status = AVAILABLE`. Unit type availability is grouped
+least one `storage_units.status = AVAILABLE`. Unit Type availability is grouped
 by `unit_types.id` and counts only `AVAILABLE` units. Reservation, hold and
 booking flows reference the Unit Type ID; a physical unit is assigned later by
 operations and is never selected by the customer.
 
-The M0 customer decision intentionally keeps the future business model separate
-from authentication: `customers.user_id` is nullable, and Booking/Rental will
-reference `customers.id`, not `users.id`. Those tables are introduced by their
-own reservation/booking issues and are not created by the browse migration.
+## M0 customer identity decision (#77)
+
+`users` represents authentication identity. `customers` represents the renter in
+the business domain. A customer can exist without a User account, so
+`customers.user_id` is nullable. The nullable unique index allows at most one
+Customer to be linked to a User. Checkout reuses an existing Customer when the
+trimmed, lowercase email matches; otherwise it creates a Customer. The unique
+email index keeps this rule consistent under concurrent checkouts. Matching an
+email for checkout association does not itself prove the guest owns that email
+or authorize access to previous bookings. An unverified checkout must not
+overwrite an existing Customer's profile fields or `user_id`; its submitted
+name, email and phone belong in the new Booking's contact snapshot. Deleting a
+User unlinks its Customer rather than deleting business history.
+
+The current reservation draft stores the guest's name, email and phone without
+requiring a User or creating a Customer. Booking and Rental will reference
+`customers.id`, never `users.id`, when their tables are introduced by their
+respective issues. A Booking must also retain a snapshot of the contact details
+used for that transaction. Successful payment is the point at which checkout
+creates or associates the business Customer and Booking. No Booking, Rental or
+guest access session table is introduced by this M0 schema change.
+
+Linking a Customer to a User requires verified ownership of the contact channel;
+an authenticated session or an equal email string alone does not authorize a
+User link. Guest access to a Booking/Rental likewise requires contact
+verification and a short-lived, scoped session. Checkout association by email
+must never create a guest access session or a User link. Once the Customer is
+linked to a User, new bookings associated by that email will belong to the same
+Customer and become visible to that User; this is an accepted consequence of
+the chosen reuse policy. The tracking mechanism (email OTP or signed magic
+link), expiry and claim workflow are **TBD** for the dependent Booking,
+tracking and account-linking implementation.

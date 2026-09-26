@@ -57,6 +57,20 @@
       "when": 1790407899196,
       "tag": "0007_slippery_stardust",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790411618343,
+      "tag": "0008_misty_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790412304156,
+      "tag": "0009_equal_triathlon",
+      "breakpoints": true
     }
   ]
 }
