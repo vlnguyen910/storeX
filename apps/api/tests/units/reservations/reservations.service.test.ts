@@ -66,4 +66,30 @@ describe("reservations service", () => {
       name: "BadRequestError",
     });
   });
+
+  it("creates a ten-minute hold using the draft access token", async () => {
+    const now = new Date();
+    const service = new ReservationsService(
+      repository({
+        createHold: async () => ({
+          id: "00000000-0000-0000-0000-000000000004",
+          facilityId,
+          unitTypeId,
+          referenceId: "00000000-0000-0000-0000-000000000003",
+          accessTokenHash: "hash",
+          kind: "HOLD" as const,
+          status: "ACTIVE" as const,
+          startsAt: now,
+          endsAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
+          createdAt: now,
+          updatedAt: now,
+        }),
+      }),
+    );
+
+    const hold = await service.createHold("00000000-0000-0000-0000-000000000003", "a".repeat(64));
+    assert.equal(hold.status, "ACTIVE");
+    assert.equal(hold.holdToken, "a".repeat(64));
+  });
 });

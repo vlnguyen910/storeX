@@ -8,8 +8,10 @@ import {
   facilities,
   facilityOperatingHours,
   gt,
+  isNull,
   lt,
   notInArray,
+  or,
   reservationDrafts,
   storageUnits,
   unitTypes,
@@ -78,6 +80,79 @@ export class ReservationsRepository {
       const [draft] = await tx.insert(reservationDrafts).values(data).returning();
       if (!draft) throw new Error("Failed to create reservation draft");
       return draft;
+    });
+  }
+
+  async createHold(draftId: string, accessTokenHash: string) {
+    return this.db.transaction(async (tx) => {
+      const [draft] = await tx
+        .select()
+        .from(reservationDrafts)
+        .where(eq(reservationDrafts.id, draftId))
+        .for("update");
+      if (!draft || draft.accessTokenHash !== accessTokenHash) return null;
+
+      const now = new Date();
+      const [existing] = await tx
+        .select()
+        .from(capacityAllocations)
+        .where(
+          and(
+            eq(capacityAllocations.referenceId, draft.id),
+            eq(capacityAllocations.kind, "HOLD"),
+            eq(capacityAllocations.status, "ACTIVE"),
+          ),
+        )
+        .for("update");
+      if (existing?.expiresAt && existing.expiresAt > now) return existing;
+      if (existing) {
+        await tx
+          .update(capacityAllocations)
+          .set({ status: "EXPIRED", updatedAt: now })
+          .where(eq(capacityAllocations.id, existing.id));
+      }
+
+      const inventory = await tx
+        .select({ id: storageUnits.id })
+        .from(storageUnits)
+        .where(
+          and(
+            eq(storageUnits.unitTypeId, draft.unitTypeId),
+            notInArray(storageUnits.status, ["INACTIVE", "LOCKED", "MAINTENANCE"]),
+          ),
+        )
+        .for("update");
+      const allocations = await tx
+        .select({ id: capacityAllocations.id })
+        .from(capacityAllocations)
+        .where(
+          and(
+            eq(capacityAllocations.unitTypeId, draft.unitTypeId),
+            eq(capacityAllocations.status, "ACTIVE"),
+            lt(capacityAllocations.startsAt, draft.rentalEndAt),
+            gt(capacityAllocations.endsAt, draft.checkInAt),
+            or(isNull(capacityAllocations.expiresAt), gt(capacityAllocations.expiresAt, now)),
+          ),
+        )
+        .for("update");
+      if (allocations.length >= inventory.length) return undefined;
+
+      const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+      const [hold] = await tx
+        .insert(capacityAllocations)
+        .values({
+          facilityId: draft.facilityId,
+          unitTypeId: draft.unitTypeId,
+          referenceId: draft.id,
+          accessTokenHash: draft.accessTokenHash,
+          kind: "HOLD",
+          status: "ACTIVE",
+          startsAt: draft.checkInAt,
+          endsAt: draft.rentalEndAt,
+          expiresAt,
+        })
+        .returning();
+      return hold;
     });
   }
 }

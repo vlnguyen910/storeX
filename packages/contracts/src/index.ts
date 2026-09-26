@@ -65,6 +65,8 @@ export enum ApiErrorCode {
   CAPACITY_UNAVAILABLE = "CAPACITY_UNAVAILABLE",
   INVALID_CHECK_IN = "INVALID_CHECK_IN",
   PRICING_NOT_CONFIGURED = "PRICING_NOT_CONFIGURED",
+  HOLD_CONFLICT = "HOLD_CONFLICT",
+  HOLD_EXPIRED = "HOLD_EXPIRED",
 }
 
 export const UserRoleSchema = z.nativeEnum(UserRole);
@@ -334,6 +336,17 @@ export const ReservationDraftSchema = z.object({
   pricing: z.null(),
 });
 export type ReservationDraft = z.infer<typeof ReservationDraftSchema>;
+
+export const ReservationHoldSchema = z.object({
+  holdId: z.string().uuid(),
+  holdToken: z.string().min(32),
+  unitTypeId: z.string().uuid(),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  status: z.literal("ACTIVE"),
+});
+export type ReservationHold = z.infer<typeof ReservationHoldSchema>;
 
 export interface DashboardKpi {
   label: string;
