@@ -328,6 +328,7 @@ export const ReservationDraftSchema = z.object({
   rentalEndAt: z.string().datetime(),
   durationMonths: z.number().int().min(1).max(12),
   contact: ReservationDraftContactSchema,
+  draftAccessToken: z.string().min(32),
   status: z.literal("DRAFT"),
   pricingStatus: z.literal("PRICING_NOT_CONFIGURED"),
   pricing: z.null(),
