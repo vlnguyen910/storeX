@@ -70,6 +70,7 @@ export class ReservationsRepository {
           eq(capacityAllocations.status, "ACTIVE"),
           lt(capacityAllocations.startsAt, endsAt),
           gt(capacityAllocations.endsAt, startsAt),
+          or(isNull(capacityAllocations.expiresAt), gt(capacityAllocations.expiresAt, new Date())),
         ),
       );
     return Math.max(0, Number(inventory?.count ?? 0) - Number(allocated?.count ?? 0));
