@@ -153,14 +153,15 @@ export function ReservationWizard() {
           <div>
             <h2 className="mb-1 text-2xl font-bold">Chọn cơ sở</h2>
             <p className="mb-6 text-muted">Chọn facility trước khi tạo reservation draft.</p>
-            <div className="grid grid-cols-2 gap-3 max-[560px]:grid-cols-1">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {facilitiesQuery.data?.items.map((facility) => (
                 <button
                   type="button"
                   key={facility.id}
                   className={cn(
-                    "flex min-h-[130px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left hover:border-primary",
-                    facilityId === facility.id && "border-primary bg-primary-soft",
+                    "relative flex min-h-[150px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-primary hover:shadow-soft",
+                    facilityId === facility.id &&
+                      "border-primary bg-primary-soft ring-2 ring-primary ring-offset-2 shadow-soft",
                   )}
                   onClick={() => {
                     form.setValue("facilityId", facility.id, { shouldValidate: true });
@@ -170,6 +171,14 @@ export function ReservationWizard() {
                   <MapPin className="text-primary" />
                   <strong>{facility.name}</strong>
                   <small className="text-muted">{facility.address}</small>
+                  {facilityId === facility.id ? (
+                    <span
+                      className="absolute top-3 right-3 grid size-6 place-items-center rounded-full bg-primary text-white"
+                      aria-hidden="true"
+                    >
+                      <Check size={14} />
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -190,8 +199,9 @@ export function ReservationWizard() {
                   disabled={option.availableCount === 0}
                   key={option.unitTypeId}
                   className={cn(
-                    "flex min-h-[140px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left disabled:cursor-not-allowed disabled:opacity-50",
-                    unitTypeId === option.unitTypeId && "border-primary bg-primary-soft",
+                    "relative flex min-h-[150px] cursor-pointer flex-col gap-2 rounded-[13px] border border-slate-300 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-primary hover:shadow-soft disabled:cursor-not-allowed disabled:opacity-50",
+                    unitTypeId === option.unitTypeId &&
+                      "border-primary bg-primary-soft ring-2 ring-primary ring-offset-2 shadow-soft",
                   )}
                   onClick={() =>
                     form.setValue("unitTypeId", option.unitTypeId, { shouldValidate: true })
@@ -201,6 +211,14 @@ export function ReservationWizard() {
                   <span>{option.sizeLabel}</span>
                   <Currency value={option.monthlyPrice} />
                   <small className="mt-auto text-accent">Còn {option.availableCount} chỗ</small>
+                  {unitTypeId === option.unitTypeId ? (
+                    <span
+                      className="absolute top-3 right-3 grid size-6 place-items-center rounded-full bg-primary text-white"
+                      aria-hidden="true"
+                    >
+                      <Check size={14} />
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -295,7 +313,7 @@ export function ReservationWizard() {
             <Button
               type="button"
               onClick={next}
-              loading={draftMutation.isPending}
+              loading={draftMutation.isPending || holdMutation.isPending}
               icon={<ArrowRight size={18} />}
             >
               Tiếp tục
