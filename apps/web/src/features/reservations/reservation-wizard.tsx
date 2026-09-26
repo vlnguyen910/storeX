@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ReservationDraft, UnitAvailabilityOption } from "@storex/contracts";
+import type { ReservationDraft, ReservationHold, UnitAvailabilityOption } from "@storex/contracts";
 import axios from "axios";
 import { ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +16,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAvailability, useFacilities } from "@/features/facilities/hooks";
 import { cn } from "@/lib/cn";
 import { dateInputMin } from "@/lib/format";
-import { useReservationDraft } from "./hooks";
+import { useReservationDraft, useReservationHold } from "./hooks";
 
 const wizardSchema = z.object({
   facilityId: z.string().min(1, "Chọn một cơ sở"),
@@ -46,8 +46,11 @@ export function ReservationWizard() {
   const { showToast } = useToast();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ReservationDraft | null>(null);
+  const [hold, setHold] = useState<ReservationHold | null>(null);
+  const [holdSeconds, setHoldSeconds] = useState(0);
   const facilitiesQuery = useFacilities({ pageSize: 20 });
   const draftMutation = useReservationDraft();
+  const holdMutation = useReservationHold();
   const form = useForm<WizardValues>({
     resolver: zodResolver(wizardSchema),
     defaultValues: {
@@ -71,6 +74,17 @@ export function ReservationWizard() {
     if (facilityParam) form.setValue("facilityId", facilityParam);
   }, [form, searchParams]);
 
+  useEffect(() => {
+    if (!hold) return;
+    const update = () =>
+      setHoldSeconds(
+        Math.max(0, Math.ceil((new Date(hold.expiresAt).getTime() - Date.now()) / 1000)),
+      );
+    update();
+    const timer = window.setInterval(update, 1000);
+    return () => window.clearInterval(timer);
+  }, [hold]);
+
   async function next() {
     if (step === 0 && (await form.trigger("facilityId"))) setStep(1);
     else if (step === 1 && (await form.trigger("unitTypeId"))) setStep(2);
@@ -88,6 +102,11 @@ export function ReservationWizard() {
           contact: { fullName: values.fullName, email: values.email, phone: values.phone },
         });
         setDraft(created);
+        const createdHold = await holdMutation.mutateAsync({
+          draftId: created.id,
+          draftAccessToken: created.draftAccessToken,
+        });
+        setHold(createdHold);
         setStep(3);
       } catch (error) {
         showToast(apiErrorMessage(error), "error");
@@ -219,7 +238,7 @@ export function ReservationWizard() {
           </div>
         ) : null}
 
-        {step === 3 && draft ? (
+        {step === 3 && draft && hold ? (
           <div className="grid gap-4">
             <span className="text-xs font-extrabold tracking-[0.13em] text-primary uppercase">
               Draft đã tạo
@@ -244,6 +263,14 @@ export function ReservationWizard() {
                 <span>Pricing</span>
                 <strong>Chưa cấu hình</strong>
               </div>
+            </div>
+            <div className="flex justify-between gap-4 rounded-lg border border-primary/20 bg-primary-soft p-3">
+              <span>Hold còn lại</span>
+              <strong>
+                {holdSeconds > 0
+                  ? `${Math.floor(holdSeconds / 60)}:${String(holdSeconds % 60).padStart(2, "0")}`
+                  : "Đã hết hạn"}
+              </strong>
             </div>
             <p className="text-muted">
               Draft đã lưu. Rental fee và deposit sẽ được tính khi pricing policy #42 được cấu hình.

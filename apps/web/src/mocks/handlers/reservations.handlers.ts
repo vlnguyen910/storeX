@@ -45,6 +45,26 @@ export function registerReservationHandlers(mock: MockAdapter): void {
     return [201, envelope(draft)];
   });
 
+  mock.onPost(/\/reservations\/drafts\/[^/]+\/hold$/).reply((config) => {
+    const body = parseBody<{ draftAccessToken: string }>(config.data);
+    if (!body.draftAccessToken) {
+      return [404, errorBody(ApiErrorCode.NOT_FOUND, "Không tìm thấy reservation draft")];
+    }
+    const now = new Date();
+    return [
+      201,
+      envelope({
+        holdId: crypto.randomUUID(),
+        holdToken: body.draftAccessToken,
+        unitTypeId: crypto.randomUUID(),
+        startsAt: now.toISOString(),
+        endsAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        expiresAt: new Date(now.getTime() + 10 * 60 * 1000).toISOString(),
+        status: "ACTIVE",
+      }),
+    ];
+  });
+
   mock.onPost("/reservations/quote").reply((config) => {
     const database = getMockDatabase();
     const user = currentUser(config, database);
