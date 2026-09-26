@@ -37,6 +37,7 @@ export function registerReservationHandlers(mock: MockAdapter): void {
       rentalEndAt: addMonths(input.checkInAt, input.durationMonths),
       durationMonths: input.durationMonths,
       contact: input.contact,
+      draftAccessToken: `mock-draft-token-${crypto.randomUUID()}`,
       status: "DRAFT",
       pricingStatus: "PRICING_NOT_CONFIGURED",
       pricing: null,

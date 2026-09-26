@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "node:crypto";
 import type { ReservationDraft, ReservationDraftContact } from "@storex/contracts";
 import { AppError, BadRequestError, NotFoundError } from "../../common/errors/app-error";
 import type { ReservationsRepository } from "./reservations.repository";
@@ -38,6 +39,10 @@ function toContact(contact: ReservationDraftContact): ReservationDraft["contact"
   return contact;
 }
 
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 export class ReservationsService {
   constructor(private readonly repository: ReservationsRepository) {}
 
@@ -66,6 +71,7 @@ export class ReservationsService {
       throw new AppError("Unit Type không còn capacity trong kỳ thuê", 409, "CAPACITY_UNAVAILABLE");
     }
 
+    const draftAccessToken = randomBytes(32).toString("hex");
     const draft = await this.repository.createDraft({
       facilityId: input.facilityId,
       unitTypeId: input.unitTypeId,
@@ -75,6 +81,7 @@ export class ReservationsService {
       contactName: input.contact.fullName,
       contactEmail: input.contact.email,
       contactPhone: input.contact.phone,
+      accessTokenHash: hashToken(draftAccessToken),
       status: "DRAFT",
       pricingStatus: "PRICING_NOT_CONFIGURED",
     });
@@ -91,6 +98,7 @@ export class ReservationsService {
         email: draft.contactEmail,
         phone: draft.contactPhone,
       }),
+      draftAccessToken,
       status: "DRAFT",
       pricingStatus: "PRICING_NOT_CONFIGURED",
       pricing: null,
