@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { accounts } from "./accounts";
+import { customers } from "./customers";
 import {
   capacityAllocations,
   facilities,
@@ -12,10 +13,18 @@ import {
 import { sessions } from "./sessions";
 import { users } from "./users";
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
+  customer: one(customers),
   sessions: many(sessions),
   accounts: many(accounts),
   facilityAssignments: many(facilityAssignments),
+}));
+
+export const customersRelations = relations(customers, ({ one }) => ({
+  user: one(users, {
+    fields: [customers.userId],
+    references: [users.id],
+  }),
 }));
 
 export const facilitiesRelations = relations(facilities, ({ many }) => ({
