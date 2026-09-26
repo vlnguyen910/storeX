@@ -176,7 +176,7 @@ export const reservationDrafts = pgTable(
     contactName: varchar({ length: 150 }).notNull(),
     contactEmail: varchar({ length: 320 }).notNull(),
     contactPhone: varchar({ length: 32 }).notNull(),
-    accessTokenHash: varchar({ length: 128 }).notNull(),
+    accessTokenHash: varchar({ length: 128 }),
     status: reservationDraftStatusEnum().default("DRAFT").notNull(),
     pricingStatus: reservationPricingStatusEnum().default("PRICING_NOT_CONFIGURED").notNull(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),

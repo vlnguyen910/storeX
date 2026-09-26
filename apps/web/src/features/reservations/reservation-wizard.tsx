@@ -94,14 +94,28 @@ export function ReservationWizard() {
     ) {
       const values = form.getValues();
       try {
-        const created = await draftMutation.mutateAsync({
-          facilityId: values.facilityId,
-          unitTypeId: values.unitTypeId,
-          checkInAt: toApiDateTime(values.checkInAt),
-          durationMonths: Number(values.durationMonths),
-          contact: { fullName: values.fullName, email: values.email, phone: values.phone },
-        });
-        setDraft(created);
+        const checkInAt = toApiDateTime(values.checkInAt);
+        const reusableDraft =
+          draft &&
+          draft.facilityId === values.facilityId &&
+          draft.unitTypeId === values.unitTypeId &&
+          draft.checkInAt === checkInAt &&
+          draft.durationMonths === Number(values.durationMonths) &&
+          draft.contact.fullName === values.fullName &&
+          draft.contact.email === values.email &&
+          draft.contact.phone === values.phone
+            ? draft
+            : null;
+        const created =
+          reusableDraft ??
+          (await draftMutation.mutateAsync({
+            facilityId: values.facilityId,
+            unitTypeId: values.unitTypeId,
+            checkInAt,
+            durationMonths: Number(values.durationMonths),
+            contact: { fullName: values.fullName, email: values.email, phone: values.phone },
+          }));
+        if (!reusableDraft) setDraft(created);
         const createdHold = await holdMutation.mutateAsync({
           draftId: created.id,
           draftAccessToken: created.draftAccessToken,
